@@ -1,4 +1,4 @@
-
+import textwrap
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -324,8 +324,60 @@ html, body, [data-testid="stAppViewContainer"] {
 
 def landing_page():
 
-    st.markdown("""
+   st.markdown(textwrap.dedent("""
     <div class="landing">
+
+        <header class="topbar">
+            <div class="logo-small">AFTERIMAGE.</div>
+
+            <nav class="nav">
+                <span>EXPLORE</span>
+                <span>ABOUT</span>
+                <span>CREATE</span>
+            </nav>
+        </header>
+
+        <main class="hero">
+
+            <div class="flower"></div>
+
+            <svg class="curve" viewBox="0 0 1440 850"
+                 preserveAspectRatio="none">
+                <path d="
+                    M -100 650
+                    C 250 400, 430 760, 720 500
+                    S 1150 150, 1550 300
+                "/>
+            </svg>
+
+            <div class="hero-content">
+
+                <div class="eyebrow">
+                    A DIGITAL ART EXHIBITION PLATFORM
+                </div>
+
+                <h1 class="main-title">AFTERIMAGE.</h1>
+
+                <div class="subtitle">
+                    YOUR ART. YOUR WORLD.
+                </div>
+
+                <div class="description">
+                    Create your own exhibition.<br>
+                    Give your artworks a space to exist.<br>
+                    Leave something behind.
+                </div>
+
+            </div>
+
+            <div class="bottom-info">
+                <span>EST. 2026</span>
+                <span>AN EXHIBITION THAT STAYS WITH YOU.</span>
+            </div>
+
+        </main>
+    </div>
+"""), unsafe_allow_html=True)
 
         <header class="topbar">
             <div class="logo-small">AFTERIMAGE.</div>
@@ -401,7 +453,7 @@ def landing_page():
 
 def inner_page(title, description):
 
-    st.markdown(f"""
+st.markdown(textwrap.dedent(f"""
     <div class="inner-page">
 
         <div class="inner-logo">AFTERIMAGE.</div>
@@ -413,13 +465,7 @@ def inner_page(title, description):
         </div>
 
     </div>
-    """, unsafe_allow_html=True)
-
-    st.write("")
-
-    if st.button("← BACK TO HOME"):
-        st.session_state.page = "landing"
-        st.rerun()
+"""), unsafe_allow_html=True)
 
 
 # ==========================================
