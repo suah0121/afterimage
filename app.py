@@ -697,14 +697,14 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       *{{box-sizing:border-box}}
       html,body{{margin:0;width:100%;height:100%;background:{bg};color:{fg};font-family:Arial,sans-serif}}
       body{{overflow-x:hidden}}
-      .stage{{width:100%;min-height:100vh;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden}}
+      .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;
         border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
       h1{{font:normal clamp(26px,4vw,52px)/.98 {font};letter-spacing:-1px;margin:0;overflow-wrap:anywhere}}
       .description{{font-size:10px;line-height:1.65;max-width:300px;text-align:right;opacity:.72}}
-      .gallery{{position:relative;flex:1;min-height:0;display:grid;align-content:center;gap:7px}}
+      .gallery{{position:relative;flex:1 1 auto;height:100%;min-height:420px;display:grid;align-content:stretch;gap:7px}}
       .art{{position:relative;min-width:0;min-height:0;overflow:hidden;background:rgba(120,120,120,.13)}}
       .art-link{{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;cursor:pointer}}
       .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block;transition:transform .5s ease}}
@@ -745,20 +745,29 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .horizontal .art:nth-child(3n){{height:min(61vh,470px);transform:translateY(16px)}}
       .horizontal .text-tile{{flex:0 0 170px;height:180px}}
       /* REF 03 — cobalt-blue immersive gallery with floating framed works. */
-      .blue{{background:#1015e8;color:#fff}}
-      .blue .top{{border-color:rgba(255,255,255,.35)}}
-      .blue .eyebrow{{color:#fff}}
-      .blue .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));
-        gap:clamp(8px,1.5vw,22px);perspective:1100px;padding:10px 1vw}}
-      .blue .art{{background:#090b25;border:5px solid #111;box-shadow:0 18px 36px rgba(0,0,0,.28)}}
-      .blue .art-0{{grid-column:2/span 3;grid-row:2/span 3;transform:rotateY(10deg)}}
-      .blue .art-1{{grid-column:6/span 2;grid-row:1/span 2;transform:translateY(12px) rotateY(-10deg)}}
-      .blue .art-2{{grid-column:9/span 3;grid-row:2/span 3;transform:rotateY(-9deg)}}
-      .blue .art-3{{grid-column:5/span 2;grid-row:3/span 2;transform:translateY(14px) rotateY(8deg)}}
-      .blue .art-4{{grid-column:8/span 2;grid-row:1/span 2;transform:translateY(-8px) rotateY(-8deg)}}
-      .blue .art-5{{grid-column:1/span 2;grid-row:1/span 2;transform:rotateY(9deg)}}
-      .blue .art-6{{grid-column:11/span 2;grid-row:1/span 2;transform:rotateY(-9deg)}}
-      .blue .text-tile{{background:#1015e8;color:white;border-color:rgba(255,255,255,.4)}}
+      /* REF 03 — immersive cobalt-blue room. The gallery has a definite viewport
+         height so grid tracks never collapse into thin horizontal strips. */
+      .blue.stage{{height:100vh;min-height:520px;padding:0;background:#1015e8;position:relative}}
+      .blue .top{{position:absolute;z-index:10;left:28px;right:28px;top:20px;height:28px;border:0;color:#fff}}
+      .blue .heading{{display:none}}
+      .blue .gallery{{position:absolute;inset:0;width:100%;height:100vh;min-height:520px;flex:none;
+        grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));
+        gap:clamp(8px,1.5vw,22px);perspective:1100px;padding:70px 3vw 58px;overflow:hidden}}
+      .blue .art{{background:#090b25;border:5px solid #111;box-shadow:0 18px 36px rgba(0,0,0,.28);min-height:0}}
+      .blue .art img{{object-fit:contain;background:#08091c}}
+      .blue .art-0{{grid-column:3/span 3;grid-row:2/span 4;transform:rotateY(9deg)}}
+      .blue .art-1{{grid-column:8/span 3;grid-row:2/span 4;transform:rotateY(-9deg)}}
+      .blue .art-2{{grid-column:9/span 2;grid-row:1/span 2;transform:rotateY(-8deg)}}
+      .blue .art-3{{grid-column:5/span 2;grid-row:3/span 2;transform:rotateY(8deg)}}
+      .blue .art-4{{grid-column:1/span 2;grid-row:2/span 2;transform:rotateY(9deg)}}
+      .blue .art-5{{grid-column:11/span 2;grid-row:3/span 2;transform:rotateY(-9deg)}}
+      .blue .art-6{{grid-column:5/span 2;grid-row:1/span 2;transform:rotateY(-8deg)}}
+      .blue .text-tile{{display:none}}
+      .blue .foot{{position:absolute;z-index:10;left:28px;right:28px;bottom:14px;height:22px;margin:0;border:0;color:#fff}}
+      .blue .art-link{{z-index:1}}
+      .blue .art-meta{{z-index:3}}
+      .blue .art:after{{z-index:2}}
+      .blue .art:has(+ .art-1){{}}
       @media(max-width:760px){{
         .stage{{padding:12px;min-height:100vh}}
         .heading{{align-items:start;flex-direction:column;gap:7px}}
@@ -766,10 +775,14 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         .collage,.blue .gallery{{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(70px,1fr))}}
         .collage .art,.blue .art{{grid-column:span 3!important;grid-row:span 2!important;transform:none!important}}
         .collage .text-tile{{grid-column:span 6!important;grid-row:span 2!important}}
+        .blue .gallery{{inset:0;padding:58px 12px 48px;min-height:520px;height:100vh}}
+        .blue .art-0{{grid-column:1/span 3!important;grid-row:2/span 4!important}}
+        .blue .art-1{{grid-column:4/span 3!important;grid-row:2/span 4!important}}
+        .blue .art-2,.blue .art-3,.blue .art-4,.blue .art-5,.blue .art-6{{display:none}}
         .horizontal{{min-height:60vh}}
       }}
     </style></head>
-    <body><main class="stage">
+    <body><main class="stage {layout_class}">
       <div class="top"><span>AFTERIMAGE.</span><span>{html.escape(theme_name)}　/　DIGITAL EXHIBITION</span><span>{count:02d} SELECTED WORKS</span></div>
       <header class="heading"><div><div class="eyebrow">AN ONLINE EXHIBITION BY {safe_artist.upper()}</div><h1>{safe_title}</h1></div>
         <div class="description">{safe_desc}</div></header>
@@ -950,3 +963,4 @@ elif st.session_state.page == "exhibition_view":
 else:
     st.session_state.page = "landing"
     st.rerun()
+
