@@ -120,16 +120,180 @@ def landing():
             st.rerun()
 
 
-def inner_page(title, subtitle):
-    st.markdown(f"""
-    <div style="background:#f6f5f1;color:#191919;min-height:82vh;padding:55px 8%;font-family:Arial,sans-serif">
-      <div style="font:24px Georgia;color:#b39e27">AFTERIMAGE.</div>
-      <div style="margin-top:75px;font:64px Georgia">{title}</div>
-      <p style="color:#777;letter-spacing:1px">{subtitle}</p>
-      <hr style="margin-top:55px;border:0;border-top:1px solid #ddd">
-      <p style="color:#aaa;letter-spacing:3px;font-size:10px">YOUR ART. YOUR WORLD.</p>
+
+def apply_light_page_style():
+    st.markdown("""
+    <style>
+    [data-testid="stAppViewContainer"] {background:#f7f7f4 !important;color:#191919 !important;}
+    .block-container {padding:0 4.5rem 3rem !important; max-width:1500px !important;}
+    [data-testid="stHeader"] {background:transparent !important;}
+    div[data-testid="stRadio"] > div {gap:10px;}
+    div[data-testid="stRadio"] label {
+      border:1px solid #deded8; border-radius:2px; padding:9px 17px;
+      background:#fff; font-size:11px; letter-spacing:1px;
+    }
+    div[data-testid="stRadio"] label:has(input:checked) {
+      border-color:#d6bd24; background:#f7efb8;
+    }
+    .stButton > button {
+      border:1px solid #d6bd24 !important; color:#252318 !important;
+      background:#f2df50 !important; font-size:11px !important;
+      letter-spacing:1px !important; min-height:42px !important;
+    }
+    .stButton > button:hover {background:#e8d02d !important;}
+    .studio-top {
+      display:flex;justify-content:space-between;align-items:center;
+      padding:28px 0 22px;border-bottom:1px solid #deded8;
+    }
+    .studio-logo {font:300 27px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:#b49d16}
+    .studio-nav {font:10px 'DM Sans',sans-serif;letter-spacing:2px;color:#777}
+    .studio-kicker {font:10px 'DM Sans',sans-serif;letter-spacing:3px;color:#a18c17}
+    .studio-title {font:300 58px 'Barlow Condensed',sans-serif;letter-spacing:1px;color:#171717;margin:12px 0 4px}
+    .studio-sub {font:12px 'DM Sans',sans-serif;color:#888;letter-spacing:.5px}
+    .project-card {
+      background:#fff;border:1px solid #e6e5df;padding:0 0 18px;
+      min-height:290px; transition:transform .2s,border-color .2s;
+    }
+    .project-card:hover {transform:translateY(-4px);border-color:#c9b32b}
+    .project-art {height:155px;position:relative;overflow:hidden;background:#ddd}
+    .project-art:after {content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 45%,rgba(0,0,0,.13))}
+    .project-meta {padding:15px 17px 0}
+    .project-type {font:9px 'DM Sans',sans-serif;letter-spacing:2px;color:#a18c17}
+    .project-name {font:22px Georgia,serif;color:#202020;margin:8px 0 5px}
+    .project-desc {font:11px/1.6 'DM Sans',sans-serif;color:#888}
+    .project-date {font:9px 'DM Sans',sans-serif;letter-spacing:1px;color:#aaa;margin-top:12px}
+    .stat-box {border-left:1px solid #d9d7ce;padding:3px 18px}
+    .stat-num {font:30px 'Barlow Condensed',sans-serif;color:#1d1d1d}
+    .stat-label {font:9px 'DM Sans',sans-serif;letter-spacing:2px;color:#999}
+    </style>
+    """, unsafe_allow_html=True)
+
+
+def studio_page():
+    apply_light_page_style()
+
+    if "studio_category" not in st.session_state:
+        st.session_state.studio_category = "ALL PROJECTS"
+    if "studio_projects" not in st.session_state:
+        st.session_state.studio_projects = [
+            {"name":"THE QUIET GARDEN","category":"ILLUSTRATION","desc":"A visual study of silence and botanical forms.","date":"UPDATED  NOV 04, 2026","tone":"linear-gradient(135deg,#d7d9c9,#77816d 55%,#303b32)"},
+            {"name":"AFTER THE RAIN","category":"PHOTOGRAPHY","desc":"Fragments of a city after the rain.","date":"UPDATED  NOV 02, 2026","tone":"linear-gradient(135deg,#bfc6c8,#64747b 52%,#252d34)"},
+            {"name":"FORM / VOID","category":"GRAPHIC DESIGN","desc":"An experiment with typography and negative space.","date":"UPDATED  OCT 28, 2026","tone":"linear-gradient(135deg,#e5d8c6,#bd8e65 52%,#493b35)"},
+            {"name":"SOFT MACHINES","category":"3D & MOTION","desc":"Imaginary objects from a softer future.","date":"UPDATED  OCT 21, 2026","tone":"linear-gradient(135deg,#c9c1d6,#8b7b9c 52%,#393448)"},
+            {"name":"BLUE HOUR","category":"PHOTOGRAPHY","desc":"A collection of places between day and night.","date":"UPDATED  OCT 16, 2026","tone":"linear-gradient(135deg,#9caec2,#455c7a 55%,#1c2638)"},
+            {"name":"TYPE IN BLOOM","category":"GRAPHIC DESIGN","desc":"Letters growing into visual compositions.","date":"UPDATED  OCT 10, 2026","tone":"linear-gradient(135deg,#e9d7a6,#c9a84d 50%,#77613c)"},
+        ]
+
+    st.markdown("""
+    <div class="studio-top">
+      <div class="studio-logo">AFTERIMAGE.</div>
+      <div class="studio-nav">MY STUDIO　 /　 MY PROJECTS　 /　 PROFILE</div>
+    </div>
+    <div style="padding-top:48px">
+      <div class="studio-kicker">YOUR CREATIVE ARCHIVE</div>
+      <div class="studio-title">MY STUDIO</div>
+      <div class="studio-sub">모든 작업을 한곳에서 관리하고, 새로운 전시를 위한 작품을 준비하세요.</div>
     </div>
     """, unsafe_allow_html=True)
+
+    st.write("")
+    c1, c2, c3, c4 = st.columns([1, 1, 1, 2.4])
+    with c1:
+        st.markdown('<div class="stat-box"><div class="stat-num">06</div><div class="stat-label">PROJECTS</div></div>', unsafe_allow_html=True)
+    with c2:
+        st.markdown('<div class="stat-box"><div class="stat-num">04</div><div class="stat-label">CATEGORIES</div></div>', unsafe_allow_html=True)
+    with c3:
+        st.markdown('<div class="stat-box"><div class="stat-num">02</div><div class="stat-label">EXHIBITIONS</div></div>', unsafe_allow_html=True)
+    with c4:
+        st.markdown('<div style="text-align:right;padding-top:4px;font:10px DM Sans,sans-serif;letter-spacing:2px;color:#aaa">A SPACE FOR EVERYTHING YOU CREATE.</div>', unsafe_allow_html=True)
+
+    st.write("")
+    left, right = st.columns([3, 1])
+    with left:
+        st.markdown('<div style="font:25px Georgia,serif;color:#222">PROJECT ARCHIVE</div><div style="font:10px DM Sans,sans-serif;color:#999;letter-spacing:1px;margin-top:5px">Browse your works by category</div>', unsafe_allow_html=True)
+    with right:
+        if st.button("+  NEW PROJECT", use_container_width=True):
+            st.session_state.page = "new_project"
+            st.rerun()
+
+    categories = ["ALL PROJECTS", "ILLUSTRATION", "PHOTOGRAPHY", "GRAPHIC DESIGN", "3D & MOTION"]
+    selected = st.radio("CATEGORY", categories, horizontal=True, label_visibility="collapsed",
+                        key="studio_category")
+    projects = st.session_state.studio_projects
+    visible = projects if selected == "ALL PROJECTS" else [p for p in projects if p["category"] == selected]
+
+    st.markdown(f'<div style="font:10px DM Sans,sans-serif;letter-spacing:2px;color:#999;margin:22px 0 13px">{len(visible):02d} PROJECTS　 /　 {selected}</div>', unsafe_allow_html=True)
+
+    for row_start in range(0, len(visible), 3):
+        cols = st.columns(3, gap="large")
+        for col, project in zip(cols, visible[row_start:row_start+3]):
+            with col:
+                st.markdown(f"""
+                <div class="project-card">
+                  <div class="project-art" style="background:{project['tone']}">
+                    <div style="position:absolute;left:18px;top:16px;font:9px DM Sans,sans-serif;letter-spacing:2px;color:rgba(255,255,255,.8)">AFTERIMAGE ARCHIVE</div>
+                    <div style="position:absolute;right:18px;bottom:12px;font:italic 38px Georgia,serif;color:rgba(255,255,255,.7)">✳</div>
+                  </div>
+                  <div class="project-meta">
+                    <div class="project-type">{project['category']}</div>
+                    <div class="project-name">{project['name']}</div>
+                    <div class="project-desc">{project['desc']}</div>
+                    <div class="project-date">{project['date']}</div>
+                  </div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button("OPEN PROJECT  ↗", key="open_"+project["name"], use_container_width=True):
+                    st.session_state.selected_project = project["name"]
+                    st.session_state.page = "project_detail"
+                    st.rerun()
+
+    st.write("")
+    st.markdown('<div style="border-top:1px solid #deded8;padding-top:17px;font:9px DM Sans,sans-serif;letter-spacing:2px;color:#aaa">AFTERIMAGE.　 YOUR ART. YOUR WORLD.</div>', unsafe_allow_html=True)
+
+
+def new_project_page():
+    apply_light_page_style()
+    st.markdown('<div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">MY STUDIO　 /　 NEW PROJECT</div></div><div style="padding-top:55px"><div class="studio-kicker">ADD TO YOUR ARCHIVE</div><div class="studio-title">NEW PROJECT</div><div class="studio-sub">새로운 작업의 정보를 입력하세요.</div></div>', unsafe_allow_html=True)
+    with st.form("new_project_form"):
+        name = st.text_input("PROJECT TITLE")
+        category = st.selectbox("CATEGORY", ["ILLUSTRATION","PHOTOGRAPHY","GRAPHIC DESIGN","3D & MOTION"])
+        desc = st.text_area("DESCRIPTION")
+        submitted = st.form_submit_button("SAVE PROJECT")
+        if submitted:
+            if name.strip():
+                st.session_state.studio_projects.insert(0, {
+                    "name":name.strip().upper(),"category":category,
+                    "desc":desc.strip() or "A new work in your creative archive.",
+                    "date":"UPDATED  TODAY",
+                    "tone":"linear-gradient(135deg,#e6dfbf,#c7b85c 55%,#655d36)"
+                })
+                st.session_state.page = "studio"
+                st.rerun()
+            else:
+                st.warning("프로젝트 제목을 입력해 주세요.")
+    if st.button("← BACK TO MY STUDIO"):
+        st.session_state.page = "studio"
+        st.rerun()
+
+
+def project_detail_page():
+    apply_light_page_style()
+    name = st.session_state.get("selected_project", "PROJECT")
+    st.markdown(f'<div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">MY STUDIO　 /　 PROJECT DETAIL</div></div><div style="padding-top:55px"><div class="studio-kicker">PROJECT ARCHIVE</div><div class="studio-title">{name}</div><div class="studio-sub">프로젝트 상세 정보는 다음 단계에서 작품 업로드 및 편집 기능과 연결할 예정입니다.</div></div>', unsafe_allow_html=True)
+    if st.button("← BACK TO MY STUDIO"):
+        st.session_state.page = "studio"
+        st.rerun()
+
+
+def explore_page():
+    apply_light_page_style()
+    st.markdown("""
+    <div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">EXPLORE　 /　 EXHIBITIONS</div></div>
+    <div style="padding-top:55px"><div class="studio-kicker">A WORLD OF CREATIVE VOICES</div>
+    <div class="studio-title">EXPLORE EXHIBITIONS</div>
+    <div class="studio-sub">다양한 창작자의 전시를 둘러보세요.</div></div>
+    """, unsafe_allow_html=True)
+    st.info("전시 탐색 화면은 MY STUDIO 다음 단계에서 디자인할 예정이야.")
     if st.button("← BACK TO HOME"):
         st.session_state.page = "landing"
         st.rerun()
@@ -138,6 +302,10 @@ def inner_page(title, subtitle):
 if st.session_state.page == "landing":
     landing()
 elif st.session_state.page == "studio":
-    inner_page("MY STUDIO", "Manage and organize your creative projects.")
+    studio_page()
+elif st.session_state.page == "new_project":
+    new_project_page()
+elif st.session_state.page == "project_detail":
+    project_detail_page()
 elif st.session_state.page == "explore":
-    inner_page("EXPLORE", "Discover exhibitions and creative worlds.")
+    explore_page()
