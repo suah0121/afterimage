@@ -1,4 +1,6 @@
 import streamlit as st
+import json
+import os
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="AFTERIMAGE.", page_icon="✳", layout="wide")
@@ -165,6 +167,16 @@ def apply_light_page_style():
     .stat-box {border-left:1px solid #d9d7ce;padding:3px 18px}
     .stat-num {font:30px 'Barlow Condensed',sans-serif;color:#1d1d1d}
     .stat-label {font:9px 'DM Sans',sans-serif;letter-spacing:2px;color:#999}
+
+    input[type="radio"] { accent-color:#d6bd24 !important; }
+    div[data-testid="stButton"] button[kind="primary"] {
+      background:#f2df50 !important; color:#171717 !important;
+      border:1px solid #d1b91f !important;
+    }
+    div[data-testid="stButton"] button[kind="secondary"] {
+      background:#fff !important; color:#242424 !important;
+      border:1px solid #deded8 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -175,14 +187,11 @@ def studio_page():
     if "studio_category" not in st.session_state:
         st.session_state.studio_category = "ALL PROJECTS"
     if "studio_projects" not in st.session_state:
-        st.session_state.studio_projects = [
-            {"name":"THE QUIET GARDEN","category":"ILLUSTRATION","desc":"A visual study of silence and botanical forms.","date":"UPDATED  NOV 04, 2026","tone":"linear-gradient(135deg,#d7d9c9,#77816d 55%,#303b32)"},
-            {"name":"AFTER THE RAIN","category":"PHOTOGRAPHY","desc":"Fragments of a city after the rain.","date":"UPDATED  NOV 02, 2026","tone":"linear-gradient(135deg,#bfc6c8,#64747b 52%,#252d34)"},
-            {"name":"FORM / VOID","category":"GRAPHIC DESIGN","desc":"An experiment with typography and negative space.","date":"UPDATED  OCT 28, 2026","tone":"linear-gradient(135deg,#e5d8c6,#bd8e65 52%,#493b35)"},
-            {"name":"SOFT MACHINES","category":"3D & MOTION","desc":"Imaginary objects from a softer future.","date":"UPDATED  OCT 21, 2026","tone":"linear-gradient(135deg,#c9c1d6,#8b7b9c 52%,#393448)"},
-            {"name":"BLUE HOUR","category":"PHOTOGRAPHY","desc":"A collection of places between day and night.","date":"UPDATED  OCT 16, 2026","tone":"linear-gradient(135deg,#9caec2,#455c7a 55%,#1c2638)"},
-            {"name":"TYPE IN BLOOM","category":"GRAPHIC DESIGN","desc":"Letters growing into visual compositions.","date":"UPDATED  OCT 10, 2026","tone":"linear-gradient(135deg,#e9d7a6,#c9a84d 50%,#77613c)"},
-        ]
+        try:
+            with open("afterimage_projects.json", "r", encoding="utf-8") as file:
+                st.session_state.studio_projects = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            st.session_state.studio_projects = []
 
     st.markdown("""
     <div class="studio-top">
@@ -216,61 +225,120 @@ def studio_page():
             st.session_state.page = "new_project"
             st.rerun()
 
+
     categories = ["ALL PROJECTS", "ILLUSTRATION", "PHOTOGRAPHY", "GRAPHIC DESIGN", "3D & MOTION"]
-    selected = st.radio("CATEGORY", categories, horizontal=True, label_visibility="collapsed",
-                        key="studio_category")
+    if "studio_category" not in st.session_state:
+        st.session_state.studio_category = "ALL PROJECTS"
+
+    filter_cols = st.columns(len(categories), gap="small")
+    for col, category in zip(filter_cols, categories):
+        with col:
+            active = st.session_state.studio_category == category
+            if st.button(category, key="filter_" + category, use_container_width=True,
+                         type="primary" if active else "secondary"):
+                st.session_state.studio_category = category
+                st.rerun()
+
     projects = st.session_state.studio_projects
+    selected = st.session_state.studio_category
     visible = projects if selected == "ALL PROJECTS" else [p for p in projects if p["category"] == selected]
 
-    st.markdown(f'<div style="font:10px DM Sans,sans-serif;letter-spacing:2px;color:#999;margin:22px 0 13px">{len(visible):02d} PROJECTS　 /　 {selected}</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="font:10px DM Sans,sans-serif;letter-spacing:2px;color:#999;margin:22px 0 13px">'
+        f'{len(visible):02d} PROJECTS　 /　 {html.escape(selected)}</div>',
+        unsafe_allow_html=True
+    )
 
-    for row_start in range(0, len(visible), 3):
-        cols = st.columns(3, gap="large")
-        for col, project in zip(cols, visible[row_start:row_start+3]):
-            with col:
-                st.markdown(f"""
-                <div class="project-card">
-                  <div class="project-art" style="background:{project['tone']}">
-                    <div style="position:absolute;left:18px;top:16px;font:9px DM Sans,sans-serif;letter-spacing:2px;color:rgba(255,255,255,.8)">AFTERIMAGE ARCHIVE</div>
-                    <div style="position:absolute;right:18px;bottom:12px;font:italic 38px Georgia,serif;color:rgba(255,255,255,.7)">✳</div>
-                  </div>
-                  <div class="project-meta">
-                    <div class="project-type">{project['category']}</div>
-                    <div class="project-name">{project['name']}</div>
-                    <div class="project-desc">{project['desc']}</div>
-                    <div class="project-date">{project['date']}</div>
-                  </div>
-                </div>
-                """, unsafe_allow_html=True)
-                if st.button("OPEN PROJECT  ↗", key="open_"+project["name"], use_container_width=True):
-                    st.session_state.selected_project = project["name"]
-                    st.session_state.page = "project_detail"
-                    st.rerun()
+    if not visible:
+        st.markdown("""
+        <div style="background:#fff;border:1px dashed #d8d5c8;padding:58px 20px;text-align:center;margin:10px 0 25px">
+          <div style="font:36px Georgia,serif;color:#c5b23c">＋</div>
+          <div style="font:20px Georgia,serif;color:#333;margin:10px 0">Your archive is waiting.</div>
+          <div style="font:11px DM Sans,sans-serif;color:#999;letter-spacing:1px">
+            아직 등록된 프로젝트가 없습니다. NEW PROJECT에서 첫 작업을 추가해 보세요.
+          </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        for row_start in range(0, len(visible), 3):
+            cols = st.columns(3, gap="large")
+            for col, project in zip(cols, visible[row_start:row_start+3]):
+                with col:
+                    image_path = project.get("image_path", "")
+                    if image_path and os.path.exists(image_path):
+                        st.image(image_path, use_container_width=True)
+                    else:
+                        st.markdown("""
+                        <div style="height:155px;background:linear-gradient(135deg,#e9e7df,#d8d3c1 55%,#b9b39c);
+                          display:flex;align-items:center;justify-content:center;color:#fff;font:italic 42px Georgia,serif">✳</div>
+                        """, unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div class="project-card" style="border-top:0">
+                      <div class="project-meta">
+                        <div class="project-type">{html.escape(project['category'])}</div>
+                        <div class="project-name">{html.escape(project['name'])}</div>
+                        <div class="project-desc">{html.escape(project['desc'])}</div>
+                        <div class="project-date">{html.escape(project.get('date',''))}</div>
+                      </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button("OPEN PROJECT  ↗", key="open_"+str(project.get("id", project["name"])), use_container_width=True):
+                        st.session_state.selected_project = project["name"]
+                        st.session_state.page = "project_detail"
+                        st.rerun()
 
     st.write("")
     st.markdown('<div style="border-top:1px solid #deded8;padding-top:17px;font:9px DM Sans,sans-serif;letter-spacing:2px;color:#aaa">AFTERIMAGE.　 YOUR ART. YOUR WORLD.</div>', unsafe_allow_html=True)
 
 
+
 def new_project_page():
     apply_light_page_style()
-    st.markdown('<div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">MY STUDIO　 /　 NEW PROJECT</div></div><div style="padding-top:55px"><div class="studio-kicker">ADD TO YOUR ARCHIVE</div><div class="studio-title">NEW PROJECT</div><div class="studio-sub">새로운 작업의 정보를 입력하세요.</div></div>', unsafe_allow_html=True)
-    with st.form("new_project_form"):
-        name = st.text_input("PROJECT TITLE")
+    st.markdown('<div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">MY STUDIO　 /　 NEW PROJECT</div></div><div style="padding-top:55px"><div class="studio-kicker">ADD TO YOUR ARCHIVE</div><div class="studio-title">NEW PROJECT</div><div class="studio-sub">작품 이미지와 정보를 등록하면 MY STUDIO에 바로 추가됩니다.</div></div>', unsafe_allow_html=True)
+
+    if "studio_projects" not in st.session_state:
+        try:
+            with open("afterimage_projects.json", "r", encoding="utf-8") as file:
+                st.session_state.studio_projects = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            st.session_state.studio_projects = []
+
+    with st.form("new_project_form", clear_on_submit=True):
+        uploaded_image = st.file_uploader("ARTWORK IMAGE", type=["png", "jpg", "jpeg", "webp"])
+        name = st.text_input("PROJECT TITLE", placeholder="작품 제목을 입력하세요")
         category = st.selectbox("CATEGORY", ["ILLUSTRATION","PHOTOGRAPHY","GRAPHIC DESIGN","3D & MOTION"])
-        desc = st.text_area("DESCRIPTION")
-        submitted = st.form_submit_button("SAVE PROJECT")
+        desc = st.text_area("DESCRIPTION", placeholder="작품에 대한 짧은 설명을 입력하세요")
+        submitted = st.form_submit_button("＋  ADD TO MY ARCHIVE", use_container_width=True)
+
         if submitted:
-            if name.strip():
-                st.session_state.studio_projects.insert(0, {
-                    "name":name.strip().upper(),"category":category,
-                    "desc":desc.strip() or "A new work in your creative archive.",
-                    "date":"UPDATED  TODAY",
-                    "tone":"linear-gradient(135deg,#e6dfbf,#c7b85c 55%,#655d36)"
-                })
+            if not name.strip():
+                st.warning("프로젝트 제목을 입력해 주세요.")
+            elif uploaded_image is None:
+                st.warning("작품 이미지를 업로드해 주세요.")
+            else:
+                os.makedirs("uploaded_projects", exist_ok=True)
+                safe_name = re.sub(r"[^a-zA-Z0-9가-힣_-]", "_", name.strip())[:40]
+                ext = os.path.splitext(uploaded_image.name)[1].lower() or ".png"
+                image_path = os.path.join("uploaded_projects", safe_name + "_" + str(len(st.session_state.studio_projects)+1) + ext)
+                with open(image_path, "wb") as image_file:
+                    image_file.write(uploaded_image.getbuffer())
+
+                new_item = {
+                    "id": str(len(st.session_state.studio_projects) + 1) + "_" + safe_name,
+                    "name": name.strip(),
+                    "category": category,
+                    "desc": desc.strip() or "설명이 등록되지 않았습니다.",
+                    "date": "ADDED TODAY",
+                    "image_path": image_path
+                }
+                st.session_state.studio_projects.insert(0, new_item)
+                with open("afterimage_projects.json", "w", encoding="utf-8") as file:
+                    json.dump(st.session_state.studio_projects, file, ensure_ascii=False, indent=2)
+
+                st.session_state.studio_category = "ALL PROJECTS"
                 st.session_state.page = "studio"
                 st.rerun()
-            else:
-                st.warning("프로젝트 제목을 입력해 주세요.")
+
     if st.button("← BACK TO MY STUDIO"):
         st.session_state.page = "studio"
         st.rerun()
