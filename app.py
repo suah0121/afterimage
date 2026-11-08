@@ -3,6 +3,7 @@ import json
 import os
 import html
 import re
+import base64
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="AFTERIMAGE.", page_icon="✳", layout="wide")
@@ -209,12 +210,17 @@ def studio_page():
 
     st.write("")
     c1, c2, c3, c4 = st.columns([1, 1, 1, 2.4])
+    try:
+        with open("afterimage_exhibitions.json", "r", encoding="utf-8") as f:
+            saved_exhibitions = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        saved_exhibitions = []
     with c1:
-        st.markdown('<div class="stat-box"><div class="stat-num">06</div><div class="stat-label">PROJECTS</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-box"><div class="stat-num">{len(st.session_state.studio_projects):02d}</div><div class="stat-label">PROJECTS</div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="stat-box"><div class="stat-num">04</div><div class="stat-label">CATEGORIES</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-box"><div class="stat-num">{len(set(p.get("category", "") for p in st.session_state.studio_projects)):02d}</div><div class="stat-label">CATEGORIES</div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown('<div class="stat-box"><div class="stat-num">02</div><div class="stat-label">EXHIBITIONS</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="stat-box"><div class="stat-num">{len(saved_exhibitions):02d}</div><div class="stat-label">EXHIBITIONS</div></div>', unsafe_allow_html=True)
     with c4:
         st.markdown('<div style="text-align:right;padding-top:4px;font:10px DM Sans,sans-serif;letter-spacing:2px;color:#aaa">A SPACE FOR EVERYTHING YOU CREATE.</div>', unsafe_allow_html=True)
 
@@ -226,6 +232,9 @@ def studio_page():
         if st.button("+  NEW PROJECT", use_container_width=True):
             st.session_state.page = "new_project"
             st.rerun()
+    if st.button("＋  CREATE EXHIBITION", use_container_width=True):
+        st.session_state.page = "exhibition_builder"
+        st.rerun()
 
 
     categories = ["ALL PROJECTS", "ILLUSTRATION", "PHOTOGRAPHY", "GRAPHIC DESIGN", "3D & MOTION"]
@@ -355,6 +364,267 @@ def project_detail_page():
         st.rerun()
 
 
+
+THEMES = {
+    "WHITE SPACE": {
+        "subtitle": "QUIET / MINIMAL / OPEN",
+        "bg": "#F6F5F0", "fg": "#24231F", "accent": "#D7BE28",
+        "font": "Georgia, serif", "mode": "white"
+    },
+    "BLACK BOX": {
+        "subtitle": "DARK / IMMERSIVE / FOCUSED",
+        "bg": "#090A0C", "fg": "#F1F0EC", "accent": "#E8D12C",
+        "font": "Arial, sans-serif", "mode": "black"
+    },
+    "COLOR FIELD": {
+        "subtitle": "BOLD / COLORFUL / UNEXPECTED",
+        "bg": "#2116B8", "fg": "#FFFFFF", "accent": "#F4E83A",
+        "font": "Arial Black, Arial, sans-serif", "mode": "color"
+    },
+    "EDITORIAL": {
+        "subtitle": "PRINT / TYPE / COMPOSITION",
+        "bg": "#E9E1D7", "fg": "#302820", "accent": "#B99B37",
+        "font": "Georgia, serif", "mode": "editorial"
+    },
+    "PLAYGROUND": {
+        "subtitle": "PLAYFUL / EXPERIMENTAL / DIGITAL",
+        "bg": "#DAD9FF", "fg": "#191A36", "accent": "#F1D92F",
+        "font": "Arial, sans-serif", "mode": "play"
+    },
+}
+
+def load_exhibitions():
+    try:
+        with open("afterimage_exhibitions.json", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, list) else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_exhibitions(items):
+    with open("afterimage_exhibitions.json", "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=2)
+
+def image_as_data_uri(path):
+    if not path or not os.path.exists(path):
+        return ""
+    ext = os.path.splitext(path)[1].lower()
+    mime = "image/png" if ext == ".png" else "image/webp" if ext == ".webp" else "image/jpeg"
+    try:
+        with open(path, "rb") as f:
+            encoded = base64.b64encode(f.read()).decode("ascii")
+        return f"data:{mime};base64,{encoded}"
+    except OSError:
+        return ""
+
+def exhibition_builder_page():
+    apply_light_page_style()
+    projects = st.session_state.get("studio_projects", [])
+    st.markdown("""
+      <div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div>
+      <div class="studio-nav">MY STUDIO　 /　 EXHIBITION BUILDER</div></div>
+      <div style="padding-top:48px">
+        <div class="studio-kicker">CREATE YOUR OWN ARTISTIC SPACE</div>
+        <div class="studio-title">NEW EXHIBITION</div>
+        <div class="studio-sub">작품을 고르고 컨셉을 선택하면 나만의 온라인 전시가 만들어집니다.</div>
+      </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <style>
+      .builder-section{font:24px Georgia,serif;color:#24231f;margin:28px 0 8px}
+      .builder-note{font:11px 'DM Sans',sans-serif;color:#92918a;letter-spacing:.4px;margin-bottom:16px}
+      .theme-card{padding:15px;border:1px solid #dedbd1;background:white;min-height:118px}
+      .theme-swatch{height:35px;margin-bottom:12px}
+      .theme-name{font:15px Georgia,serif;color:#24231f}
+      .theme-sub{font:9px 'DM Sans',sans-serif;letter-spacing:1px;color:#999;margin-top:5px}
+    </style>
+    """, unsafe_allow_html=True)
+
+    title = st.text_input("EXHIBITION TITLE", key="ex_title", placeholder="예: A STUDY OF LIGHT")
+    description = st.text_area("EXHIBITION DESCRIPTION", key="ex_desc",
+                               placeholder="이번 전시에서 보여주고 싶은 이야기나 작품의 분위기를 적어주세요.", height=90)
+    artist = st.text_input("ARTIST NAME", key="ex_artist", placeholder="작가명 또는 닉네임")
+
+    st.markdown('<div class="builder-section">01. SELECT PROJECTS</div><div class="builder-note">MY STUDIO에 등록한 작품 중 이번 전시에 포함할 작품을 선택하세요.</div>', unsafe_allow_html=True)
+    if not projects:
+        st.warning("아직 등록된 작품이 없습니다. 먼저 MY STUDIO에서 작품을 추가해 주세요.")
+        if st.button("← BACK TO MY STUDIO"):
+            st.session_state.page = "studio"
+            st.rerun()
+        return
+
+    project_options = [p.get("name", "Untitled") for p in projects]
+    selected_names = st.multiselect("PROJECTS TO EXHIBIT", project_options,
+                                    default=st.session_state.get("ex_selected_projects", []),
+                                    key="ex_selected_projects",
+                                    placeholder="전시에 넣을 작품을 선택하세요.")
+    if selected_names:
+        chosen = [p for p in projects if p.get("name") in selected_names]
+        preview_cols = st.columns(min(4, len(chosen)))
+        for col, p in zip(preview_cols, chosen[:4]):
+            with col:
+                if p.get("image_path") and os.path.exists(p["image_path"]):
+                    st.image(p["image_path"], use_container_width=True)
+                st.caption(p.get("name", ""))
+
+    st.markdown('<div class="builder-section">02. CHOOSE A CONCEPT</div><div class="builder-note">컨셉에 따라 콜라주 배치, 타이포그래피, 배경과 작품 상세 화면이 자동으로 달라집니다.</div>', unsafe_allow_html=True)
+    theme_names = list(THEMES.keys())
+    if "ex_theme" not in st.session_state:
+        st.session_state.ex_theme = "WHITE SPACE"
+    theme_cols = st.columns(5, gap="small")
+    for col, theme_name in zip(theme_cols, theme_names):
+        t = THEMES[theme_name]
+        with col:
+            st.markdown(
+                f'<div class="theme-card"><div class="theme-swatch" style="background:{t["bg"]};border:1px solid #ddd"></div>'
+                f'<div class="theme-name">{theme_name}</div><div class="theme-sub">{t["subtitle"]}</div></div>',
+                unsafe_allow_html=True
+            )
+            if st.button("SELECTED ✓" if st.session_state.ex_theme == theme_name else "SELECT",
+                         key="theme_" + theme_name, use_container_width=True):
+                st.session_state.ex_theme = theme_name
+                st.rerun()
+
+    chosen_theme = st.session_state.ex_theme
+    t = THEMES[chosen_theme]
+    st.markdown(
+        f'<div style="margin:20px 0 12px;padding:18px 20px;background:{t["bg"]};color:{t["fg"]};'
+        f'border:1px solid #d8d5cc"><div style="font:10px Arial;letter-spacing:2px;color:{t["accent"]}">CURRENT CONCEPT</div>'
+        f'<div style="font:30px {t["font"]};margin-top:8px">{chosen_theme}</div>'
+        f'<div style="font:10px Arial;letter-spacing:2px;margin-top:5px">{t["subtitle"]}</div></div>',
+        unsafe_allow_html=True
+    )
+
+    left, right = st.columns(2)
+    with left:
+        if st.button("← BACK TO MY STUDIO", use_container_width=True):
+            st.session_state.page = "studio"
+            st.rerun()
+    with right:
+        if st.button("PREVIEW EXHIBITION  ↗", use_container_width=True):
+            if not title.strip():
+                st.warning("전시 제목을 입력해 주세요.")
+            elif not selected_names:
+                st.warning("전시에 포함할 작품을 하나 이상 선택해 주세요.")
+            else:
+                st.session_state.exhibition_draft = {
+                    "title": title.strip(), "description": description.strip(),
+                    "artist": artist.strip() or "ARTIST",
+                    "theme": chosen_theme, "project_names": selected_names
+                }
+                st.session_state.page = "exhibition_preview"
+                st.rerun()
+
+def exhibition_preview_page():
+    apply_light_page_style()
+    draft = st.session_state.get("exhibition_draft")
+    if not draft:
+        st.warning("미리보기할 전시가 없습니다.")
+        if st.button("BACK TO BUILDER"):
+            st.session_state.page = "exhibition_builder"
+            st.rerun()
+        return
+
+    theme = draft["theme"]
+    t = THEMES[theme]
+    projects = st.session_state.get("studio_projects", [])
+    selected = [p for p in projects if p.get("name") in draft["project_names"]]
+    cards = []
+    for i, p in enumerate(selected):
+        uri = image_as_data_uri(p.get("image_path", ""))
+        if not uri:
+            uri = ""
+        cards.append({"name": p.get("name", "UNTITLED"), "category": p.get("category", ""),
+                      "desc": p.get("desc", ""), "uri": uri})
+
+    # Theme-specific automatic collage arrangements.
+    if theme == "WHITE SPACE":
+        positions = ["a", "b", "c", "d", "e", "f"]
+        layout_css = ".collage{display:grid;grid-template-columns:1.1fr .9fr 1fr;grid-template-rows:210px 170px;gap:12px}.art:nth-child(3n+1){grid-row:span 2}.art:nth-child(3n+2){align-self:end}"
+        card_css = "border:1px solid rgba(0,0,0,.12)"
+    elif theme == "BLACK BOX":
+        positions = ["a", "b", "c", "d", "e", "f"]
+        layout_css = ".collage{display:grid;grid-template-columns:1.2fr .8fr 1fr;grid-template-rows:190px 230px;gap:20px;align-items:center}.art:nth-child(2n){transform:translateY(22px) rotate(1deg)}.art:nth-child(3n){transform:translateY(-12px) rotate(-1deg)}"
+        card_css = "border:1px solid rgba(255,255,255,.18);box-shadow:0 20px 45px rgba(0,0,0,.4)"
+    elif theme == "COLOR FIELD":
+        layout_css = ".collage{display:grid;grid-template-columns:1fr 1.2fr .8fr;grid-template-rows:180px 210px;gap:10px}.art:nth-child(2n){transform:rotate(2deg) scale(.94)}.art:nth-child(3n){transform:rotate(-3deg) scale(.9)}"
+        card_css = "border:4px solid #fff"
+    elif theme == "EDITORIAL":
+        layout_css = ".collage{display:grid;grid-template-columns:1fr .8fr 1.2fr;grid-template-rows:220px 170px;gap:14px}.art:nth-child(2){grid-row:span 2}.art:nth-child(4){grid-column:span 2}"
+        card_css = "border:1px solid rgba(48,40,32,.2)"
+    else:
+        layout_css = ".collage{display:grid;grid-template-columns:1fr 1.1fr .8fr;grid-template-rows:190px 210px;gap:14px;align-items:center}.art:nth-child(2n){transform:translateY(18px) rotate(3deg)}.art:nth-child(3n){transform:translateY(-15px) rotate(-4deg)}"
+        card_css = "border:2px solid rgba(255,255,255,.75);border-radius:12px"
+
+    art_html = ""
+    for i, item in enumerate(cards):
+        img = f'<img src="{item["uri"]}" alt="">' if item["uri"] else '<div class="placeholder">AFTERIMAGE.</div>'
+        art_html += (
+            f'<article class="art art-{i}" style="{card_css}">{img}'
+            f'<div class="art-label">{html.escape(item["name"])}</div></article>'
+        )
+    if not art_html:
+        art_html = '<div class="placeholder">ADD YOUR FIRST ARTWORK</div>'
+
+    safe_title = html.escape(draft["title"])
+    safe_artist = html.escape(draft["artist"])
+    safe_desc = html.escape(draft["description"])
+    bg = t["bg"]; fg = t["fg"]; accent = t["accent"]; font = t["font"]
+    page_html = f"""
+    <!doctype html><html><head><meta charset="utf-8"><style>
+      *{{box-sizing:border-box}}body{{margin:0;background:{bg};color:{fg};font-family:Arial,sans-serif}}
+      .wrap{{padding:34px 5vw 48px;min-height:760px}}
+      .top{{display:flex;justify-content:space-between;border-bottom:1px solid currentColor;padding-bottom:16px;font-size:10px;letter-spacing:2px;opacity:.8}}
+      .eyebrow{{font-size:10px;letter-spacing:3px;color:{accent};margin-top:40px}}
+      h1{{font:normal clamp(42px,7vw,88px)/.98 {font};margin:12px 0 10px;max-width:900px;letter-spacing:-1px}}
+      .desc{{font-size:12px;line-height:1.8;max-width:540px;opacity:.72}}
+      .collage{{margin-top:34px;{layout_css}}}
+      .art{{position:relative;min-height:130px;overflow:hidden;background:rgba(127,127,127,.18);{card_css}}}
+      .art img{{width:100%;height:100%;min-height:130px;object-fit:cover;display:block;filter:{'grayscale(1)' if theme=='BLACK BOX' else 'none'}}}
+      .placeholder{{height:100%;min-height:130px;display:flex;align-items:center;justify-content:center;font:italic 20px Georgia,serif;opacity:.45}}
+      .art-label{{position:absolute;left:10px;bottom:8px;padding:5px 7px;background:rgba(0,0,0,.65);color:white;font-size:9px;letter-spacing:1px}}
+      .foot{{display:flex;justify-content:space-between;margin-top:34px;border-top:1px solid currentColor;padding-top:13px;font-size:9px;letter-spacing:2px;opacity:.7}}
+      @media(max-width:650px){{.collage{{grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:8px}}.art{{min-height:120px}}}}
+    </style></head><body><main class="wrap">
+      <div class="top"><span>AFTERIMAGE.</span><span>{theme}　 /　 DIGITAL EXHIBITION</span><span>01 — 05</span></div>
+      <div class="eyebrow">AN ONLINE EXHIBITION BY {safe_artist.upper()}</div>
+      <h1>{safe_title}</h1><div class="desc">{safe_desc}</div>
+      <section class="collage">{art_html}</section>
+      <div class="foot"><span>SELECTED WORKS　 /　 {len(cards):02d}</span><span>YOUR ART. YOUR WORLD.</span></div>
+    </main></body></html>
+    """
+    st.markdown('<div class="studio-top"><div class="studio-logo">AFTERIMAGE.</div><div class="studio-nav">EXHIBITION BUILDER　 /　 PREVIEW</div></div>', unsafe_allow_html=True)
+    components.html(page_html, height=880, scrolling=True)
+
+    st.markdown("### SELECTED PROJECTS")
+    detail_cols = st.columns(min(3, max(1, len(selected))))
+    for col, p in zip(detail_cols, selected):
+        with col:
+            if p.get("image_path") and os.path.exists(p["image_path"]):
+                st.image(p["image_path"], use_container_width=True)
+            st.markdown(f"**{p.get('name','')}**")
+            st.caption(p.get("desc", ""))
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("← EDIT EXHIBITION", use_container_width=True):
+            st.session_state.page = "exhibition_builder"
+            st.rerun()
+    with c2:
+        if st.button("SAVE EXHIBITION", use_container_width=True):
+            exhibitions = load_exhibitions()
+            saved = dict(draft)
+            saved["id"] = "ex_" + str(len(exhibitions) + 1)
+            saved["created"] = "TODAY"
+            exhibitions.insert(0, saved)
+            save_exhibitions(exhibitions)
+            st.session_state.saved_exhibition_id = saved["id"]
+            st.session_state.page = "studio"
+            st.success("전시가 저장되었습니다. MY STUDIO에서 확인할 수 있어요.")
+            st.rerun()
+
+
 def explore_page():
     apply_light_page_style()
     st.markdown("""
@@ -379,3 +649,7 @@ elif st.session_state.page == "project_detail":
     project_detail_page()
 elif st.session_state.page == "explore":
     explore_page()
+elif st.session_state.page == "exhibition_builder":
+    exhibition_builder_page()
+elif st.session_state.page == "exhibition_preview":
+    exhibition_preview_page()
