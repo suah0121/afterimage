@@ -2,7 +2,13 @@ import streamlit as st
 
 
 def render_navigation():
-    menu_items = ["HOME", "EXPLORE", "EXHIBITION", "ABOUT"]
+    menu_items = [
+        "HOME",
+        "EXPLORE",
+        "EXHIBITION",
+        "ABOUT",
+        "ADMIN"
+    ]
 
     if "current_page" not in st.session_state:
         st.session_state.current_page = "HOME"
@@ -11,10 +17,13 @@ def render_navigation():
 
     for col, item in zip(cols, menu_items):
         with col:
+            is_active = st.session_state.current_page == item
+
             if st.button(
                 item,
                 key=f"nav_{item}",
-                use_container_width=True
+                use_container_width=True,
+                type="primary" if is_active else "secondary"
             ):
                 st.session_state.current_page = item
                 st.rerun()
