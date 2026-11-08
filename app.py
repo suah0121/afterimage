@@ -839,6 +839,10 @@ def exhibition_view_page():
             st.rerun()
         return
 
+    # Load the artworks belonging to this exhibition before rendering the
+    # collage or resolving a clicked artwork link.
+    selected = get_exhibition_projects(exhibition)
+
     # Artwork links in the full-screen exhibition canvas open the existing
     # project-detail page without adding a second card list below the collage.
     work_id = st.query_params.get("work_id")
