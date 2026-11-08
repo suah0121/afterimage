@@ -650,130 +650,126 @@ def get_exhibition_projects(exhibition):
     return exhibition.get("projects_snapshot", [])
 
 
-def make_exhibition_html(exhibition, selected):
+def make_exhibition_html(exhibition, selected, interactive=False):
     theme_name = exhibition.get("theme", "WHITE SPACE")
     theme = THEMES.get(theme_name, THEMES["WHITE SPACE"])
     bg, fg, accent, font = theme["bg"], theme["fg"], theme["accent"], theme["font"]
-
-    art_html = ""
-    for i, project in enumerate(selected):
-        uri = image_as_data_uri(project.get("image_path", ""))
-        if uri:
-            media = f'<img src="{uri}" alt="{html.escape(project.get("name", "Artwork"))}">'
-        else:
-            media = '<div class="art-placeholder">AFTERIMAGE.</div>'
-        art_html += (
-            f'<article class="art art-{i % 6}">{media}'
-            f'<div class="art-label"><span>{i+1:02d}</span>{html.escape(project.get("name", "UNTITLED"))}</div>'
-            f'</article>'
-        )
-
-    if not art_html:
-        art_html = '<div class="empty-art">NO WORKS FOUND</div>'
 
     safe_title = html.escape(exhibition.get("title", "UNTITLED"))
     safe_artist = html.escape(exhibition.get("artist", "ARTIST"))
     safe_desc = html.escape(exhibition.get("description", ""))
     count = len(selected)
 
-    # The collage includes editorial text panels as well as artwork, so even
-    # a small collection does not become one oversized image.
+    cards = []
+    for i, project in enumerate(selected):
+        uri = image_as_data_uri(project.get("image_path", ""))
+        name = html.escape(project.get("name", "UNTITLED"))
+        category = html.escape(project.get("category", ""))
+        project_id = html.escape(str(project.get("id", "")), quote=True)
+        image = (f'<img src="{uri}" alt="{name}">' if uri else
+                 '<div class="placeholder">AFTERIMAGE.</div>')
+        href_open = f'<a class="art-link" href="?work_id={project_id}" target="_top" aria-label="View {name}">' if interactive else '<div class="art-link">'
+        href_close = '</a>' if interactive else '</div>'
+        cards.append(
+            f'<article class="art art-{i % 8}">{href_open}{image}'
+            f'<div class="art-meta"><span>{i+1:02d}</span><strong>{name}</strong>'
+            f'<small>{category}</small></div>{href_close}</article>'
+        )
+    if not cards:
+        cards.append('<div class="empty">NO WORKS FOUND</div>')
+
+    # The three visual references are reflected in the exhibition modes:
+    # editorial collage, quiet horizontal gallery, and immersive blue space.
+    mode = theme.get("mode", "white")
+    is_blue = theme_name == "COLOR FIELD" or mode == "color"
+    is_editorial = theme_name in ("WHITE SPACE", "EDITORIAL") or mode == "editorial"
+
     page_html = f"""
     <!doctype html><html><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
       *{{box-sizing:border-box}}
-      body{{margin:0;background:{bg};color:{fg};font-family:Arial,sans-serif}}
-      .wrap{{padding:34px clamp(22px,5vw,76px) 50px;min-height:720px;overflow:hidden}}
-      .top{{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;
-        border-bottom:1px solid currentColor;padding-bottom:15px;font-size:10px;letter-spacing:2px;opacity:.8}}
-      .eyebrow{{font-size:10px;letter-spacing:3px;color:{accent};margin-top:42px}}
-      h1{{font:normal clamp(42px,7vw,94px)/.98 {font};margin:13px 0 12px;max-width:1000px;letter-spacing:-1px;overflow-wrap:anywhere}}
-      .desc{{font-size:12px;line-height:1.9;max-width:560px;opacity:.76}}
-      .collage{{margin-top:42px;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));
-        grid-auto-rows:minmax(62px,7.5vw);grid-auto-flow:dense;gap:13px;align-items:stretch}}
-      .art{{position:relative;min-width:0;min-height:145px;overflow:hidden;background:rgba(127,127,127,.16)}}
-      .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:contain;display:block;padding:5px}}
-      .art-placeholder{{height:100%;min-height:145px;display:flex;align-items:center;justify-content:center;
-        font:italic 20px Georgia,serif;opacity:.4}}
-      .art-label{{position:absolute;left:9px;right:9px;bottom:8px;display:flex;gap:10px;align-items:center;
-        width:max-content;max-width:calc(100% - 18px);padding:6px 8px;background:rgba(0,0,0,.72);
-        color:white;font-size:9px;letter-spacing:.8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
-      .art-label span{{color:{accent};font-size:9px}}
-      .text-tile{{padding:20px;display:flex;flex-direction:column;justify-content:space-between;min-height:145px;
-        border:1px solid currentColor;overflow:hidden}}
-      .text-tile small{{font-size:9px;letter-spacing:2px;opacity:.7}}
-      .text-tile strong{{font:normal clamp(17px,2.4vw,29px)/1.15 {font};overflow-wrap:anywhere}}
-      .text-tile p{{font-size:10px;line-height:1.7;opacity:.7;margin:10px 0 0}}
-      .tile-accent{{background:{accent};color:{'#171717' if theme_name != 'BLACK BOX' else '#111'};border:0}}
-      .foot{{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:35px;
-        border-top:1px solid currentColor;padding-top:13px;font-size:9px;letter-spacing:2px;opacity:.7}}
-      .empty-art{{grid-column:span 12;padding:50px;text-align:center;border:1px dashed currentColor;opacity:.6}}
-      /* WHITE SPACE: ordered editorial grid and generous whitespace */
-      .mode-white .art-0{{grid-column:span 7;grid-row:span 3}}
-      .mode-white .art-1{{grid-column:span 5;grid-row:span 2}}
-      .mode-white .art-2{{grid-column:span 4;grid-row:span 2}}
-      .mode-white .art-3{{grid-column:span 3;grid-row:span 2}}
-      .mode-white .art-4,.mode-white .art-5{{grid-column:span 5;grid-row:span 2}}
-      .mode-white .text-tile{{grid-column:span 5;grid-row:span 2}}
-      /* BLACK BOX: deep dark space and staggered floating images */
-      .mode-black .art{{box-shadow:0 18px 38px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2)}}
-      .mode-black .art-0{{grid-column:span 6;grid-row:span 3}}
-      .mode-black .art-1{{grid-column:span 4;grid-row:span 2;transform:translateY(18px)}}
-      .mode-black .art-2{{grid-column:span 6;grid-row:span 2}}
-      .mode-black .art-3{{grid-column:span 4;grid-row:span 3;transform:translateY(-10px)}}
-      .mode-black .art-4,.mode-black .art-5{{grid-column:span 5;grid-row:span 2}}
-      .mode-black .text-tile{{grid-column:span 4;grid-row:span 2}}
-      /* COLOR FIELD: bold blocks and strong color contrast */
-      .mode-color .art{{border:4px solid #fff}}
-      .mode-color .art-0{{grid-column:span 5;grid-row:span 3}}
-      .mode-color .art-1{{grid-column:span 7;grid-row:span 2;transform:rotate(1deg)}}
-      .mode-color .art-2{{grid-column:span 4;grid-row:span 2;transform:rotate(-1deg)}}
-      .mode-color .art-3{{grid-column:span 4;grid-row:span 3}}
-      .mode-color .art-4,.mode-color .art-5{{grid-column:span 4;grid-row:span 2}}
-      .mode-color .text-tile{{grid-column:span 4;grid-row:span 2}}
-      /* EDITORIAL: magazine-like columns and caption blocks */
-      .mode-editorial .art{{border:1px solid rgba(48,40,32,.22)}}
-      .mode-editorial .art-0{{grid-column:span 4;grid-row:span 3}}
-      .mode-editorial .art-1{{grid-column:span 5;grid-row:span 2}}
-      .mode-editorial .art-2{{grid-column:span 3;grid-row:span 3}}
-      .mode-editorial .art-3{{grid-column:span 5;grid-row:span 2}}
-      .mode-editorial .art-4,.mode-editorial .art-5{{grid-column:span 4;grid-row:span 2}}
-      .mode-editorial .text-tile{{grid-column:span 4;grid-row:span 2}}
-      /* PLAYGROUND: irregular, experimental composition */
-      .mode-play .art{{border:2px solid rgba(255,255,255,.8);border-radius:10px}}
-      .mode-play .art-0{{grid-column:span 5;grid-row:span 3;transform:rotate(-1deg)}}
-      .mode-play .art-1{{grid-column:span 4;grid-row:span 2;transform:translateY(20px) rotate(2deg)}}
-      .mode-play .art-2{{grid-column:span 3;grid-row:span 3;transform:rotate(2deg)}}
-      .mode-play .art-3{{grid-column:span 4;grid-row:span 2;transform:translateY(-8px) rotate(-2deg)}}
-      .mode-play .art-4,.mode-play .art-5{{grid-column:span 4;grid-row:span 2}}
-      .mode-play .text-tile{{grid-column:span 4;grid-row:span 2;border-radius:10px}}
-      /* One-work exhibitions still retain a collage/editorial balance. */
-      .collage.single .art-0{{grid-column:span 7;grid-row:span 4}}
-      .collage.single .text-tile{{grid-column:span 5;grid-row:span 2}}
-      .collage.single .tile-accent{{grid-column:span 5;grid-row:span 2}}
+      html,body{{margin:0;width:100%;min-height:100%;background:{bg};color:{fg};font-family:Arial,sans-serif}}
+      body{{overflow-x:hidden}}
+      .stage{{min-height:100vh;width:100%;padding:20px clamp(18px,3.2vw,52px) 26px;position:relative;overflow:hidden}}
+      .top{{height:42px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+        border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.8}}
+      .intro{{display:flex;align-items:end;justify-content:space-between;gap:24px;padding:22px 0 18px}}
+      .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:9px}}
+      h1{{font:normal clamp(30px,5vw,68px)/.98 {font};letter-spacing:-1.5px;margin:0;max-width:70vw}}
+      .intro-note{{max-width:290px;font-size:10px;line-height:1.7;opacity:.72;text-align:right}}
+      .gallery{{position:relative;min-height:calc(100vh - 160px);display:grid;gap:10px;align-content:center}}
+      .art{{position:relative;min-width:0;min-height:150px;overflow:hidden;background:rgba(127,127,127,.12)}}
+      .art-link{{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;cursor:pointer}}
+      .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block;transition:transform .65s cubic-bezier(.2,.7,.2,1)}}
+      .art:hover img{{transform:scale(1.045)}}
+      .art:after{{content:"";position:absolute;inset:35% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.56));pointer-events:none;opacity:.78}}
+      .art-meta{{position:absolute;z-index:2;left:12px;right:12px;bottom:11px;color:#fff;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}}
+      .art-meta span{{font-size:9px;color:{accent};letter-spacing:1px}}
+      .art-meta strong{{font-size:11px;font-weight:500;letter-spacing:.4px}}
+      .art-meta small{{font-size:8px;letter-spacing:1px;opacity:.72;margin-left:auto}}
+      .placeholder{{height:100%;min-height:150px;display:grid;place-items:center;font:italic 20px Georgia,serif;opacity:.4}}
+      .foot{{display:flex;justify-content:space-between;gap:12px;border-top:1px solid currentColor;padding-top:11px;
+        margin-top:15px;font-size:8px;letter-spacing:2px;opacity:.65}}
+      .empty{{grid-column:1/-1;padding:60px;text-align:center;border:1px dashed currentColor;opacity:.6}}
+      /* Reference 1: dense editorial collage with varied image proportions. */
+      .editorial{{grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(70px,8.5vh);gap:8px}}
+      .editorial .art-0{{grid-column:span 4;grid-row:span 4}}
+      .editorial .art-1{{grid-column:span 4;grid-row:span 2}}
+      .editorial .art-2{{grid-column:span 4;grid-row:span 3}}
+      .editorial .art-3{{grid-column:span 4;grid-row:span 2}}
+      .editorial .art-4{{grid-column:span 4;grid-row:span 3}}
+      .editorial .art-5{{grid-column:span 4;grid-row:span 2}}
+      .editorial .art-6,.editorial .art-7{{grid-column:span 3;grid-row:span 2}}
+      /* Reference 2: minimalist gallery, works aligned on a horizontal exhibition wall. */
+      .horizontal{{display:flex;align-items:center;justify-content:center;gap:clamp(12px,2vw,28px);
+        min-height:calc(100vh - 190px);padding:20px 1vw;overflow-x:auto;scrollbar-width:thin}}
+      .horizontal .art{{flex:0 0 clamp(150px,17vw,245px);height:clamp(230px,43vh,430px);background:#d9d4cf}}
+      .horizontal .art:nth-child(2n){{height:clamp(190px,34vh,340px);transform:translateY(-22px)}}
+      .horizontal .art:nth-child(3n){{height:clamp(250px,48vh,470px);transform:translateY(18px)}}
+      /* Reference 3: immersive cobalt-blue virtual exhibition with floating works. */
+      .blue{{background:#0715e9;color:#fff}}
+      .blue .top{{border-color:rgba(255,255,255,.35)}}
+      .blue .eyebrow{{color:#fff}}
+      .blue h1{{text-shadow:0 2px 20px rgba(0,0,0,.22)}}
+      .blue .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(70px,8vh);
+        gap:clamp(10px,2vw,26px);perspective:1000px;align-content:center;padding:15px 1vw}}
+      .blue .art{{background:#080b24;box-shadow:0 22px 42px rgba(0,0,0,.32);border:5px solid #101010;transform:rotateY(-8deg)}}
+      .blue .art-0{{grid-column:2/span 3;grid-row:span 3;transform:translateY(12px) rotateY(10deg)}}
+      .blue .art-1{{grid-column:6/span 2;grid-row:span 2;transform:translateY(-20px) rotateY(-12deg)}}
+      .blue .art-2{{grid-column:9/span 3;grid-row:span 3;transform:translateY(18px) rotateY(9deg)}}
+      .blue .art-3{{grid-column:4/span 2;grid-row:span 2;transform:translateY(28px) rotateY(12deg)}}
+      .blue .art-4{{grid-column:7/span 2;grid-row:span 2;transform:translateY(22px) rotateY(-10deg)}}
+      .blue .art-5{{grid-column:1/span 2;grid-row:span 2;transform:translateY(-15px) rotateY(8deg)}}
+      .blue .art-6{{grid-column:10/span 2;grid-row:span 2;transform:translateY(-15px) rotateY(-8deg)}}
+      .blue .art-meta{{text-shadow:0 1px 5px #000}}
       @media(max-width:760px){{
-        .wrap{{padding:24px 18px}}
-        .collage{{grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:100px;gap:9px}}
-        .collage .art,.collage .text-tile{{grid-column:span 3!important;grid-row:span 2!important;transform:none!important}}
-        .collage.single .art-0{{grid-column:span 4!important;grid-row:span 3!important}}
-        .collage.single .text-tile,.collage.single .tile-accent{{grid-column:span 2!important;grid-row:span 2!important}}
+        .stage{{padding:14px 12px 20px}}
+        .intro{{align-items:start;flex-direction:column;gap:10px}}
+        h1{{max-width:100%;font-size:38px}}
+        .intro-note{{text-align:left;max-width:100%}}
+        .editorial,.blue .gallery{{grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:90px}}
+        .editorial .art,.blue .art{{grid-column:span 3!important;grid-row:span 2!important;transform:none!important}}
+        .editorial .art:first-child{{grid-column:span 6!important;grid-row:span 3!important}}
+        .horizontal{{justify-content:flex-start;min-height:62vh}}
+        .horizontal .art{{flex-basis:65vw;height:42vh!important;transform:none!important}}
       }}
     </style></head>
-    <body><main class="wrap mode-{theme["mode"]}">
-      <div class="top"><span>AFTERIMAGE.</span><span>{html.escape(theme_name)}　/　DIGITAL EXHIBITION</span><span>SELECTED WORKS　{count:02d}</span></div>
-      <div class="eyebrow">AN ONLINE EXHIBITION BY {safe_artist.upper()}</div>
-      <h1>{safe_title}</h1><div class="desc">{safe_desc}</div>
-      <section class="collage {'single' if count == 1 else ''}">
-        {art_html}
-        <div class="text-tile"><small>EXHIBITION NOTE / 01</small><strong>{safe_title}</strong><p>{safe_desc or 'A collection of selected works.'}</p></div>
-        <div class="text-tile tile-accent"><small>THE ARTIST</small><strong>{safe_artist}</strong><p>{html.escape(theme.get("subtitle",""))}</p></div>
-      </section>
-      <div class="foot"><span>SELECTED WORKS　/　{count:02d}</span><span>YOUR ART. YOUR WORLD.</span></div>
-    </main></body></html>
+    <body>
+      <main class="stage {'blue' if is_blue else ''}">
+        <div class="top"><span>AFTERIMAGE.</span><span>ONLINE EXHIBITION　/　{html.escape(theme_name)}</span><span>{count:02d} WORKS</span></div>
+        <header class="intro">
+          <div><div class="eyebrow">AN ONLINE EXHIBITION BY {safe_artist.upper()}</div><h1>{safe_title}</h1></div>
+          <div class="intro-note">{safe_desc}</div>
+        </header>
+        <section class="gallery {'editorial' if is_editorial else 'horizontal'}">
+          {''.join(cards)}
+        </section>
+        <div class="foot"><span>SELECTED WORKS　/　{count:02d}</span><span>CLICK AN ARTWORK TO EXPLORE</span><span>AFTERIMAGE.</span></div>
+      </main>
+    </body></html>
     """
     return page_html
-
 
 def exhibition_preview_page():
     apply_light_page_style()
@@ -843,30 +839,21 @@ def exhibition_view_page():
             st.rerun()
         return
 
-    selected = get_exhibition_projects(exhibition)
-    page_html = make_exhibition_html(exhibition, selected)
-    components.html(page_html, height=980, scrolling=True)
+    # Artwork links in the full-screen exhibition canvas open the existing
+    # project-detail page without adding a second card list below the collage.
+    work_id = st.query_params.get("work_id")
+    if work_id:
+        chosen_work = next((p for p in selected if str(p.get("id", "")) == str(work_id)), None)
+        if chosen_work:
+            st.session_state.selected_project_id = chosen_work.get("id")
+            st.session_state.selected_project = chosen_work.get("name")
+            st.session_state.project_detail_return = "exhibition_view"
+            st.query_params.clear()
+            st.session_state.page = "project_detail"
+            st.rerun()
 
-    st.markdown('<div style="border-top:1px solid #deded8;margin:30px 0 20px;padding-top:24px;font:23px Georgia,serif;color:#222">EXPLORE THE WORKS</div>', unsafe_allow_html=True)
-    if selected:
-        for start in range(0, len(selected), 3):
-            cols = st.columns(3, gap="large")
-            for col, project in zip(cols, selected[start:start+3]):
-                with col:
-                    path = project.get("image_path", "")
-                    if path and os.path.exists(path):
-                        st.image(path, use_container_width=True)
-                    st.markdown(f"**{project.get('name', 'UNTITLED')}**")
-                    st.caption(project.get("category", ""))
-                    st.write(project.get("desc", ""))
-                    if st.button("VIEW PROJECT  ↗", key="exwork_" + str(exhibition_id) + "_" + str(project.get("id", project.get("name"))), use_container_width=True):
-                        st.session_state.selected_project_id = project.get("id")
-                        st.session_state.selected_project = project.get("name")
-                        st.session_state.project_detail_return = "exhibition_view"
-                        st.session_state.page = "project_detail"
-                        st.rerun()
-    else:
-        st.info("이 전시에 연결된 작품을 찾을 수 없습니다.")
+    page_html = make_exhibition_html(exhibition, selected, interactive=True)
+    components.html(page_html, height=1050, scrolling=False)
 
     back_target = st.session_state.get("exhibition_return", "studio")
     back_label = "← BACK TO EXPLORE" if back_target == "explore" else "← BACK TO MY STUDIO"
