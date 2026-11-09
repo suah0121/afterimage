@@ -54,15 +54,15 @@ def landing():
     .nav span{{padding-right:25px;border-right:1px solid #777}}
     .nav span:last-child{{border:0}}
     .login{{margin-left:auto;color:#ddd}}
-    .hero-copy{{position:absolute;z-index:4;left:50%;top:50%;width:min(88%,1050px);transform:translate(-50%,-50%);text-align:center;animation:rise 1.2s ease both}}
-    @keyframes rise{{from{{opacity:0;transform:translate(-50%,-44%)}}to{{opacity:1;transform:translate(-50%,-50%)}}}}
-    .eyebrow{{font:11px 'DM Sans',sans-serif;letter-spacing:4px;color:#ddd;display:flex;align-items:center;justify-content:center;gap:22px}}
+    .hero-copy{{position:absolute;z-index:4;left:8%;top:50%;width:min(76%,1050px);transform:translateY(-50%);text-align:left;animation:rise 1.2s ease both}}
+    @keyframes rise{{from{{opacity:0;transform:translateY(-44%)}}to{{opacity:1;transform:translateY(-50%)}}}}
+    .eyebrow{{font:11px 'DM Sans',sans-serif;letter-spacing:4px;color:#ddd;display:flex;align-items:center;justify-content:flex-start;gap:22px}}
     .eyebrow:before,.eyebrow:after{{content:'';height:1px;width:clamp(35px,9vw,175px);background:#aaa}}
     h1{{font:300 clamp(75px,10.2vw,155px)/.9 'Barlow Condensed',sans-serif;letter-spacing:-3px;
       color:#f3d72d;margin:42px 0 10px;white-space:nowrap}}
     .tag{{font:400 clamp(18px,2.4vw,36px) 'DM Sans',sans-serif;letter-spacing:9px;color:#f3d72d;white-space:nowrap}}
-    .desc{{margin:38px auto 0;border:0;padding:0;
-      color:#ccc;font:10px/2 'DM Sans',sans-serif;letter-spacing:3px;text-align:center}}
+    .desc{{margin:38px 0 0;border:0;padding:0;
+      color:#ccc;font:10px/2 'DM Sans',sans-serif;letter-spacing:3px;text-align:left}}
     .curve{{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}}
     .curve path{{fill:none;stroke:rgba(235,235,235,.8);stroke-width:.8;stroke-dasharray:1800;stroke-dashoffset:1800;
       animation:draw 5s ease forwards .3s}}
@@ -81,7 +81,7 @@ def landing():
     @media(max-width:760px){{
       .hero{{min-height:680px;height:90vh}} .top{{left:5%;right:5%;gap:12px}}
       .brand{{font-size:18px;margin-right:0}} .nav{{gap:10px;font-size:8px}} .nav span{{padding-right:10px}}
-      .hero-copy{{top:50%;left:50%;width:92%;transform:translate(-50%,-50%)}} h1{{font-size:clamp(64px,13vw,100px)}}
+      .hero-copy{{top:50%;left:7%;width:86%;transform:translateY(-50%);text-align:left}} .eyebrow{{justify-content:flex-start}} h1{{font-size:clamp(64px,13vw,100px)}}
       .tag{{letter-spacing:4px}} .eyebrow:before,.eyebrow:after{{width:28px}} .flower{{background-position:62% center;opacity:.72}}
       .index{{right:5%;top:auto;bottom:18%;}} .desc{{margin-top:30px}}
       .bottom{{font-size:8px;letter-spacing:1.5px}}
@@ -145,8 +145,9 @@ def landing():
       document.querySelector('[data-start-exhibition]')?.addEventListener('click', ev => {{
         ev.preventDefault();
         const target = new URL(window.parent.location.href);
-        target.searchParams.set('landing_action', 'studio');
-        window.parent.location.assign(target.toString());
+        target.searchParams.set('landing_action', 'exhibition_builder');
+        try {{ window.top.location.href = target.toString(); }}
+        catch (err) {{ window.parent.location.href = target.toString(); }}
       }});
     </script>
     </body></html>
@@ -1063,7 +1064,7 @@ try:
     landing_action = st.query_params.get("landing_action")
 except Exception:
     landing_action = None
-if landing_action in ("studio", "explore"):
+if landing_action in ("studio", "explore", "exhibition_builder"):
     st.session_state.page = landing_action
     try:
         del st.query_params["landing_action"]
