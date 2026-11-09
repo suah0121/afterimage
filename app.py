@@ -122,7 +122,7 @@ def landing():
         </div>
       </div>
       <div class="about-decoration">A / 01</div>
-      <a class="about-cta" href="#start" data-start-exhibition>START EXHIBITION <span>↗</span></a>
+      <div class="about-cta-visual">START EXHIBITION <span>↗</span></div>
     </section>
     <style>
       .about{{min-height:860px;background:#11110f;color:#e8e5dc;padding:90px 8% 80px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}}
@@ -136,23 +136,32 @@ def landing():
       .about-rule{{height:1px;background:#5d5940;margin:25px 0 17px;width:100%}}
       .about-foot{{font-size:8px;letter-spacing:2px;color:#d9c43b}}
       .about-decoration{{position:absolute;right:8%;bottom:22px;font:11px 'DM Sans',sans-serif;letter-spacing:3px;color:#666}}
-      .about-cta{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;text-decoration:none;font:10px 'DM Sans',sans-serif;letter-spacing:2px;transition:background .3s,color .3s,transform .3s;position:relative;z-index:2}}
-      .about-cta:hover{{background:#f3d72d;color:#080808;transform:translateY(-3px)}}
-      .about-cta span{{font-size:17px}}
+      .about-cta-visual{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;font:10px 'DM Sans',sans-serif;letter-spacing:2px;position:relative;z-index:2}}
+      .about-cta-visual span{{font-size:17px}}
       @media(max-width:760px){{.about{{padding:55px 7% 65px}}.about-grid{{grid-template-columns:1fr;gap:28px;padding:42px 0}}.about h2{{font-size:64px}}.about-copy .about-lead{{font-size:14px}}}}
     </style>
-    <script>
-      document.querySelector('[data-start-exhibition]')?.addEventListener('click', ev => {{
-        ev.preventDefault();
-        const target = new URL(window.parent.location.href);
-        target.searchParams.set('landing_action', 'exhibition_builder');
-        try {{ window.top.location.href = target.toString(); }}
-        catch (err) {{ window.parent.location.href = target.toString(); }}
-      }});
-    </script>
     </body></html>
     """
     components.html(html, height=1800, scrolling=False)
+
+    # iframe 내부 링크 대신 Streamlit 네이티브 버튼으로 페이지 이동
+    st.markdown("""
+    <style>
+    div[data-testid="stButton"]:has(button[kind="primary"]) {width:100%;margin-top:-4px;}
+    div[data-testid="stButton"]:has(button[kind="primary"]) button {
+        width:100%;min-height:70px !important;border-radius:0 !important;
+        border:1px solid #d9c43b !important;background:#f3d72d !important;
+        color:#080808 !important;text-align:left !important;padding:0 24px !important;
+        font:10px 'DM Sans',sans-serif !important;letter-spacing:2px !important;
+    }
+    div[data-testid="stButton"]:has(button[kind="primary"]) button:hover {
+        background:#ffe84a !important;border-color:#ffe84a !important;transform:translateY(-2px);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    if st.button("START EXHIBITION     ↗", key="landing_start_exhibition", type="primary", use_container_width=True):
+        st.session_state.page = "exhibition_builder"
+        st.rerun()
 
 
 
