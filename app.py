@@ -38,8 +38,8 @@ def landing():
     <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Barlow+Condensed:wght@300;400&display=swap');
     *{{box-sizing:border-box}}
-    html,body{{margin:0;width:100%;height:100%;background:#050505;overflow:hidden}}
-    .hero{{height: min(900px, 96vh); min-height:720px; position:relative; overflow:hidden;
+    html,body{{margin:0;width:100%;min-height:100%;background:#050505;overflow-x:hidden;overflow-y:auto}}
+    .hero{{height:100vh; min-height:720px; position:relative; overflow:hidden;
       background:radial-gradient(ellipse at 73% 45%,#202020 0%,#090909 42%,#030303 75%); color:#eee;}}
     .flower{{position:absolute;inset:0;width:100%;height:100%;
       background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 53%,rgba(5,5,5,.04) 100%),url('{FLOWER}');
@@ -110,9 +110,36 @@ def landing():
         <div class="motto">SOME MOMENTS.<br>LIVE FOREVER.　 ─────</div>
       </footer>
     </main>
+    <section class="about" id="about">
+      <div class="about-kicker">BEYOND THE FRAME　/　ABOUT AFTERIMAGE.</div>
+      <div class="about-grid">
+        <h2>MAKE YOUR<br><em>ART</em> REMAIN.</h2>
+        <div class="about-copy">
+          <p class="about-lead">AFTERIMAGE.는 창작물을 모으고, 하나의 감각적인 디지털 전시로 엮어내는 공간입니다.</p>
+          <p>작품을 등록하고, 전시의 분위기를 선택하고, 나만의 시선으로 작품을 배치해 보세요. 서로 다른 작업들이 하나의 이야기와 경험으로 이어집니다.</p>
+          <div class="about-rule"></div>
+          <div class="about-foot">COLLECT YOUR WORKS.　CURATE YOUR STORY.　LEAVE AN AFTERIMAGE.</div>
+        </div>
+      </div>
+      <div class="about-decoration">A / 01</div>
+    </section>
+    <style>
+      .about{{min-height:470px;background:#11110f;color:#e8e5dc;padding:75px 8% 58px;position:relative;overflow:hidden}}
+      .about:before{{content:'';position:absolute;width:420px;height:420px;border:1px solid rgba(243,215,45,.18);border-radius:50%;right:-110px;top:45px;box-shadow:0 0 0 34px rgba(243,215,45,.025),0 0 0 68px rgba(243,215,45,.02)}}
+      .about-kicker{{font:10px 'DM Sans',sans-serif;letter-spacing:3px;color:#d9c43b;border-bottom:1px solid #49473a;padding-bottom:18px}}
+      .about-grid{{display:grid;grid-template-columns:1.1fr 1fr;gap:8%;align-items:center;padding:58px 0 45px;position:relative;z-index:1}}
+      .about h2{{font:300 clamp(54px,7vw,100px)/.88 'Barlow Condensed',sans-serif;letter-spacing:-1px;margin:0;color:#e8e5dc}}
+      .about h2 em{{font-style:normal;color:#f3d72d}}
+      .about-copy{{max-width:510px;font:12px/2 'DM Sans',sans-serif;color:#aaa99f;letter-spacing:.3px}}
+      .about-copy .about-lead{{font-size:16px;line-height:1.8;color:#eeeae0;margin:0 0 18px}}
+      .about-rule{{height:1px;background:#5d5940;margin:25px 0 17px;width:100%}}
+      .about-foot{{font-size:8px;letter-spacing:2px;color:#d9c43b}}
+      .about-decoration{{position:absolute;right:8%;bottom:22px;font:11px 'DM Sans',sans-serif;letter-spacing:3px;color:#666}}
+      @media(max-width:760px){{.about{{padding:55px 7% 65px}}.about-grid{{grid-template-columns:1fr;gap:28px;padding:42px 0}}.about h2{{font-size:64px}}.about-copy .about-lead{{font-size:14px}}}}
+    </style>
     </body></html>
     """
-    components.html(html, height=920, scrolling=False)
+    components.html(html, height=1450, scrolling=False)
 
     a, b, c = st.columns([1.1, 1.1, 4])
     with a:
@@ -651,7 +678,7 @@ def get_exhibition_projects(exhibition):
 
 
 def make_exhibition_html(exhibition, selected, interactive=False):
-    """전시 화면 전용 렌더러. 기존 사이트의 다른 화면은 건드리지 않는다."""
+    """컨셉별 편집 디자인으로 전시를 렌더링한다."""
     theme_name = exhibition.get("theme", "WHITE SPACE")
     theme = THEMES.get(theme_name, THEMES["WHITE SPACE"])
     bg, fg, accent, font = theme["bg"], theme["fg"], theme["accent"], theme["font"]
@@ -666,12 +693,11 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         name = html.escape(project.get("name", "UNTITLED"))
         category = html.escape(project.get("category", ""))
         project_id = str(project.get("id", ""))
-        # The artwork itself is the link. It opens the existing project detail page.
-        href = "?work_id=" + project_id
         media = (f'<img src="{uri}" alt="{name}">' if uri else
-                 '<div class="placeholder">AFTERIMAGE.</div>')
+                 f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            opening = f'<a class="art-link" href="{html.escape(href, quote=True)}" target="_top" aria-label="View {name}">'
+            opening = (f'<a class="art-link" href="?work_id={html.escape(project_id, quote=True)}" '
+                       f'target="_top" aria-label="View {name}">')
             closing = '</a>'
         else:
             opening, closing = '<div class="art-link">', '</div>'
@@ -685,10 +711,11 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         art_html.append('<div class="empty">NO WORKS FOUND</div>')
 
     mode = theme.get("mode", "white")
-    # The three supplied references map to the existing exhibition themes:
-    # WHITE SPACE = editorial image collage, EDITORIAL = horizontal gallery,
-    # COLOR FIELD = immersive cobalt-blue floating gallery.
-    layout_class = "horizontal" if mode == "editorial" else ("blue" if mode == "color" else "collage")
+    layout_class = {
+        "white": "white-space", "black": "black-box", "color": "color-field",
+        "editorial": "editorial", "play": "playground"
+    }.get(mode, "white-space")
+    exit_link = '<a class="exit" href="?close_exhibition=1" target="_top">CLOSE　×</a>' if interactive else ''
 
     page_html = f"""
     <!doctype html><html><head><meta charset="utf-8">
@@ -697,96 +724,127 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       *{{box-sizing:border-box}}
       html,body{{margin:0;width:100%;height:100%;background:{bg};color:{fg};font-family:Arial,sans-serif}}
       body{{overflow-x:hidden}}
-      .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden}}
-      .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;
-        border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px}}
+      .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden;position:relative}}
+      .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
+      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.8}}
+      .exit:hover{{background:{accent};color:#111;border-color:{accent}}}
+      .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
       h1{{font:normal clamp(26px,4vw,52px)/.98 {font};letter-spacing:-1px;margin:0;overflow-wrap:anywhere}}
       .description{{font-size:10px;line-height:1.65;max-width:300px;text-align:right;opacity:.72}}
-      .gallery{{position:relative;flex:1 1 auto;height:100%;min-height:420px;display:grid;align-content:stretch;gap:7px}}
-      .art{{position:relative;min-width:0;min-height:0;overflow:hidden;background:rgba(120,120,120,.13)}}
-      .art-link{{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;cursor:pointer}}
-      .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block;transition:transform .5s ease}}
-      .art:hover img{{transform:scale(1.035)}}
-      .art:after{{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.58));pointer-events:none}}
-      .art-meta{{position:absolute;z-index:2;left:10px;right:10px;bottom:9px;color:white;display:flex;align-items:baseline;gap:8px;pointer-events:none}}
+      .gallery{{position:relative;flex:1 1 auto;height:100%;min-height:420px;display:grid;align-content:stretch;gap:8px}}
+      .art{{position:relative;min-width:0;min-height:0;overflow:hidden;background:rgba(120,120,120,.13);isolation:isolate;animation:artReveal .85s cubic-bezier(.2,.7,.2,1) both}}
+      .art:nth-child(2){{animation-delay:.08s}}.art:nth-child(3){{animation-delay:.16s}}.art:nth-child(4){{animation-delay:.24s}}.art:nth-child(5){{animation-delay:.32s}}.art:nth-child(6){{animation-delay:.4s}}
+      @keyframes artReveal{{from{{opacity:0;transform:translateY(16px) scale(.985)}}to{{opacity:1;transform:translateY(0) scale(1)}}}}
+      .art-link{{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;cursor:pointer;z-index:1}}
+      .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.2,.7,.2,1),filter .8s ease}}
+      .art:hover img{{transform:scale(1.055);filter:saturate(1.12)}}
+      .art:after{{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.62));pointer-events:none;z-index:2}}
+      .art-meta{{position:absolute;z-index:3;left:12px;right:12px;bottom:11px;color:white;display:flex;align-items:baseline;gap:8px;pointer-events:none}}
       .art-meta span{{font-size:8px;color:{accent};letter-spacing:1px}}
       .art-meta strong{{font-size:10px;font-weight:500;letter-spacing:.4px}}
       .art-meta small{{font-size:8px;opacity:.75;margin-left:auto}}
-      .placeholder{{height:100%;display:grid;place-items:center;font:italic 18px Georgia,serif;opacity:.45}}
-      .text-tile{{min-width:0;min-height:0;padding:15px;display:flex;flex-direction:column;justify-content:space-between;
-        border:1px solid currentColor;overflow:hidden;background:{bg};color:{fg}}}
+      .placeholder{{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;font:italic 24px Georgia,serif;opacity:.6}}
+      .placeholder span{{font-size:45px;color:{accent}}}.placeholder small{{font:9px Arial,sans-serif;letter-spacing:2px}}
+      .text-tile{{min-width:0;min-height:0;padding:17px;display:flex;flex-direction:column;justify-content:space-between;border:1px solid currentColor;overflow:hidden;background:{bg};color:{fg};position:relative}}
+      .text-tile:after{{content:'✳';position:absolute;right:-12px;bottom:-42px;font:130px Georgia,serif;color:{accent};opacity:.18}}
       .text-tile small{{font-size:8px;letter-spacing:1.8px;opacity:.68}}
-      .text-tile strong{{font:normal clamp(16px,2vw,27px)/1.05 {font};overflow-wrap:anywhere}}
-      .text-tile p{{font-size:9px;line-height:1.6;opacity:.7;margin:8px 0 0}}
-      .foot{{height:25px;flex:0 0 25px;display:flex;justify-content:space-between;align-items:end;gap:10px;
-        border-top:1px solid currentColor;margin-top:12px;padding-top:7px;font-size:8px;letter-spacing:1.7px;opacity:.68}}
+      .text-tile strong{{font:normal clamp(16px,2vw,27px)/1.05 {font};overflow-wrap:anywhere;position:relative;z-index:1}}
+      .text-tile p{{font-size:9px;line-height:1.6;opacity:.7;margin:8px 0 0;position:relative;z-index:1}}
+      .foot{{height:25px;flex:0 0 25px;display:flex;justify-content:space-between;align-items:end;gap:10px;border-top:1px solid currentColor;margin-top:12px;padding-top:7px;font-size:8px;letter-spacing:1.7px;opacity:.68}}
       .empty{{grid-column:1/-1;padding:40px;text-align:center;border:1px dashed currentColor;opacity:.6}}
-
-      /* REF 01 — tight editorial collage: varied image blocks and a typography tile. */
-      .collage{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr))}}
-      .collage .art-0{{grid-column:1/span 4;grid-row:1/span 4}}
-      .collage .art-1{{grid-column:5/span 4;grid-row:1/span 2}}
-      .collage .art-2{{grid-column:9/span 4;grid-row:1/span 3}}
-      .collage .art-3{{grid-column:1/span 4;grid-row:5/span 2}}
-      .collage .art-4{{grid-column:5/span 4;grid-row:3/span 4}}
-      .collage .art-5{{grid-column:9/span 4;grid-row:4/span 3}}
-      .collage .art-6{{grid-column:1/span 3;grid-row:1/span 2}}
-      .collage .text-tile{{grid-column:5/span 4;grid-row:3/span 2;z-index:3}}
-      .collage .art-1{{grid-column:5/span 4;grid-row:1/span 2}}
-      .collage .art-4{{grid-column:5/span 4;grid-row:5/span 2}}
-      .collage .text-tile{{grid-column:5/span 4;grid-row:3/span 2}}
-      /* REF 02 — quiet beige exhibition wall with horizontal artworks. */
-      .horizontal{{display:flex;align-items:center;justify-content:flex-start;gap:clamp(12px,2vw,28px);
-        min-height:0;padding:24px clamp(8px,3vw,42px);overflow-x:auto;scrollbar-width:thin}}
-      .horizontal .art{{flex:0 0 clamp(145px,17vw,235px);height:min(56vh,440px);background:#d8d1ca}}
-      .horizontal .art:nth-child(2n){{height:min(43vh,340px);transform:translateY(-18px)}}
-      .horizontal .art:nth-child(3n){{height:min(61vh,470px);transform:translateY(16px)}}
-      .horizontal .text-tile{{flex:0 0 170px;height:180px}}
-      /* REF 03 — cobalt-blue immersive gallery with floating framed works. */
-      /* REF 03 — immersive cobalt-blue room. The gallery has a definite viewport
-         height so grid tracks never collapse into thin horizontal strips. */
-      .blue.stage{{height:100vh;min-height:520px;padding:0;background:#1015e8;position:relative}}
-      .blue .top{{position:absolute;z-index:10;left:28px;right:28px;top:20px;height:28px;border:0;color:#fff}}
-      .blue .heading{{display:none}}
-      .blue .gallery{{position:absolute;inset:0;width:100%;height:100vh;min-height:520px;flex:none;
-        grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));
-        gap:clamp(8px,1.5vw,22px);perspective:1100px;padding:70px 3vw 58px;overflow:hidden}}
-      .blue .art{{background:#090b25;border:5px solid #111;box-shadow:0 18px 36px rgba(0,0,0,.28);min-height:0}}
-      .blue .art img{{object-fit:contain;background:#08091c}}
-      .blue .art-0{{grid-column:3/span 3;grid-row:2/span 4;transform:rotateY(9deg)}}
-      .blue .art-1{{grid-column:8/span 3;grid-row:2/span 4;transform:rotateY(-9deg)}}
-      .blue .art-2{{grid-column:9/span 2;grid-row:1/span 2;transform:rotateY(-8deg)}}
-      .blue .art-3{{grid-column:5/span 2;grid-row:3/span 2;transform:rotateY(8deg)}}
-      .blue .art-4{{grid-column:1/span 2;grid-row:2/span 2;transform:rotateY(9deg)}}
-      .blue .art-5{{grid-column:11/span 2;grid-row:3/span 2;transform:rotateY(-9deg)}}
-      .blue .art-6{{grid-column:5/span 2;grid-row:1/span 2;transform:rotateY(-8deg)}}
-      .blue .text-tile{{display:none}}
-      .blue .foot{{position:absolute;z-index:10;left:28px;right:28px;bottom:14px;height:22px;margin:0;border:0;color:#fff}}
-      .blue .art-link{{z-index:1}}
-      .blue .art-meta{{z-index:3}}
-      .blue .art:after{{z-index:2}}
-      .blue .art:has(+ .art-1){{}}
+      /* WHITE SPACE: airy, ivory editorial collage with generous margins and a fine grid. */
+      .white-space{{background:#f6f5f0}}
+      .white-space .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:10px}}
+      .white-space .art{{background:#e8e6df}}
+      .white-space .art-0{{grid-column:1/span 4;grid-row:1/span 5}}
+      .white-space .art-1{{grid-column:5/span 4;grid-row:1/span 2}}
+      .white-space .art-2{{grid-column:9/span 4;grid-row:1/span 3}}
+      .white-space .art-3{{grid-column:5/span 3;grid-row:3/span 4}}
+      .white-space .art-4{{grid-column:8/span 5;grid-row:4/span 3}}
+      .white-space .art-5{{grid-column:1/span 4;grid-row:6/span 1}}
+      .white-space .text-tile{{grid-column:9/span 4;grid-row:4/span 2;z-index:4}}
+      .white-space .art-5{{grid-column:1/span 4;grid-row:6/span 1}}
+      /* BLACK BOX: immersive near-black canvas, oversized title and cinematic framed works. */
+      .black-box{{background:#08090b;color:#f4f1e9}}
+      .black-box.stage{{padding:22px 3.5vw 18px}}
+      .black-box .heading{{padding:25px 0 20px;align-items:center}}
+      .black-box h1{{font:300 clamp(44px,8vw,108px)/.86 'Arial Narrow',Arial,sans-serif;letter-spacing:-3px;text-transform:uppercase}}
+      .black-box .description{{border-left:1px solid #e8d12c;padding:8px 0 8px 18px;text-align:left}}
+      .black-box .gallery{{grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:12px}}
+      .black-box .art{{background:#15171b;border:1px solid #34363a;box-shadow:0 15px 38px rgba(0,0,0,.35)}}
+      .black-box .art-0{{grid-column:1/span 4;grid-row:1/span 5}}
+      .black-box .art-1{{grid-column:5/span 3;grid-row:1/span 3}}
+      .black-box .art-2{{grid-column:8/span 3;grid-row:1/span 2}}
+      .black-box .art-3{{grid-column:5/span 3;grid-row:4/span 2}}
+      .black-box .art-4{{grid-column:8/span 3;grid-row:3/span 3}}
+      .black-box .text-tile{{grid-column:8/span 3;grid-row:3/span 1;padding:10px;background:#111318;border-color:#e8d12c;color:#f4f1e9}}
+      .black-box .text-tile strong{{font-size:16px}}
+      /* COLOR FIELD: cobalt canvas, acid-yellow typography and asymmetrical poster grid. */
+      .color-field{{background:#2116b8;color:#fff}}
+      .color-field.stage{{padding:18px 3vw 16px}}
+      .color-field .top{{border-color:rgba(255,255,255,.5)}}
+      .color-field .heading{{padding:12px 0 18px}}
+      .color-field h1{{font:900 clamp(40px,7vw,94px)/.82 Arial,sans-serif;letter-spacing:-5px;text-transform:uppercase;color:#f4e83a;max-width:70%}}
+      .color-field .eyebrow{{color:#f4e83a}}
+      .color-field .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:9px}}
+      .color-field .art{{border:3px solid #f4e83a;background:#151078;box-shadow:7px 7px 0 #0d086c}}
+      .color-field .art-0{{grid-column:1/span 4;grid-row:1/span 5;transform:rotate(-1.5deg)}}
+      .color-field .art-1{{grid-column:5/span 4;grid-row:1/span 3;transform:rotate(1deg)}}
+      .color-field .art-2{{grid-column:9/span 4;grid-row:1/span 4;transform:rotate(-1deg)}}
+      .color-field .art-3{{grid-column:5/span 3;grid-row:4/span 3;transform:rotate(-1deg)}}
+      .color-field .art-4{{grid-column:8/span 5;grid-row:5/span 2;transform:rotate(1deg)}}
+      .color-field .text-tile{{grid-column:9/span 4;grid-row:4/span 1;background:#f4e83a;color:#2116b8;border:0;transform:rotate(1deg);padding:10px}}
+      .color-field .text-tile:after{{color:#2116b8}}
+      .color-field .text-tile strong{{font:900 19px Arial,sans-serif;text-transform:uppercase}}
+      .color-field .text-tile p{{display:none}}
+      /* EDITORIAL: warm paper, serif masthead and a horizontal print-gallery rhythm. */
+      .editorial{{background:#e9e1d7;color:#302820}}
+      .editorial.stage{{padding:22px 4vw 18px}}
+      .editorial .heading{{border-bottom:1px solid #b9a995;padding:22px 0 20px}}
+      .editorial h1{{font:normal clamp(42px,6vw,80px)/.95 Georgia,serif;letter-spacing:-2px}}
+      .editorial .description{{font:italic 12px/1.8 Georgia,serif;max-width:260px}}
+      .editorial .gallery{{display:flex;align-items:center;justify-content:flex-start;gap:clamp(14px,2.4vw,34px);min-height:0;padding:24px 2vw;overflow-x:auto;scrollbar-width:thin}}
+      .editorial .art{{flex:0 0 clamp(150px,17vw,240px);height:min(55vh,430px);background:#d8d1c8}}
+      .editorial .art:nth-child(2n){{height:min(42vh,330px);transform:translateY(18px)}}
+      .editorial .art:nth-child(3n){{height:min(62vh,470px);transform:translateY(-16px)}}
+      .editorial .text-tile{{flex:0 0 190px;height:210px;border:0;border-top:1px solid #302820;border-bottom:1px solid #302820;background:transparent;padding:14px 5px}}
+      .editorial .foot{{border-color:#b9a995}}
+      /* PLAYGROUND: lavender canvas, floating cards, playful rotation and graphic stickers. */
+      .playground{{background:#dadaff;color:#191a36}}
+      .playground.stage{{background:radial-gradient(circle at 50% 45%,#f1efff 0,#dadaff 58%,#b8b8f4 100%);padding:18px 3vw 16px}}
+      .playground .heading{{align-items:center}}
+      .playground h1{{font:900 clamp(34px,5vw,70px)/.9 Arial,sans-serif;letter-spacing:-3px;color:#3730a3}}
+      .playground .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:12px;padding:8px 3vw}}
+      .playground .art{{border:5px solid #fff;border-radius:3px;box-shadow:0 14px 25px rgba(54,48,163,.18)}}
+      .playground .art-0{{grid-column:2/span 3;grid-row:1/span 4;transform:rotate(-4deg)}}
+      .playground .art-1{{grid-column:6/span 3;grid-row:2/span 4;transform:rotate(3deg)}}
+      .playground .art-2{{grid-column:10/span 3;grid-row:1/span 3;transform:rotate(4deg)}}
+      .playground .art-3{{grid-column:1/span 3;grid-row:5/span 2;transform:rotate(2deg)}}
+      .playground .art-4{{grid-column:9/span 4;grid-row:4/span 3;transform:rotate(-3deg)}}
+      .playground .text-tile{{grid-column:4/span 2;grid-row:1/span 2;border:0;background:#f1d92f;color:#28236e;transform:rotate(-5deg);padding:12px}}
+      .playground .text-tile strong{{font:900 19px Arial,sans-serif}}
+      .playground .text-tile p{{font-size:8px}}
+      .playground .foot{{border-color:rgba(25,26,54,.3)}}
       @media(max-width:760px){{
-        .stage{{padding:12px;min-height:100vh}}
+        .stage{{padding:12px;min-height:100vh;height:auto;overflow:visible}}
         .heading{{align-items:start;flex-direction:column;gap:7px}}
         .description{{text-align:left;max-width:100%}}
-        .collage,.blue .gallery{{grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(70px,1fr))}}
-        .collage .art,.blue .art{{grid-column:span 3!important;grid-row:span 2!important;transform:none!important}}
-        .collage .text-tile{{grid-column:span 6!important;grid-row:span 2!important}}
-        .blue .gallery{{inset:0;padding:58px 12px 48px;min-height:520px;height:100vh}}
-        .blue .art-0{{grid-column:1/span 3!important;grid-row:2/span 4!important}}
-        .blue .art-1{{grid-column:4/span 3!important;grid-row:2/span 4!important}}
-        .blue .art-2,.blue .art-3,.blue .art-4,.blue .art-5,.blue .art-6{{display:none}}
-        .horizontal{{min-height:60vh}}
+        .gallery{{min-height:620px;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:repeat(6,minmax(75px,1fr))!important}}
+        .gallery .art{{grid-column:span 3!important;grid-row:span 2!important;transform:none!important}}
+        .gallery .text-tile{{grid-column:span 6!important;grid-row:span 2!important;transform:none!important}}
+        .editorial .gallery{{display:flex;min-height:62vh;padding:12px 4px}}
+        .editorial .art{{flex-basis:58vw;height:42vh!important;transform:none!important}}
+        .top{{font-size:7px;letter-spacing:1px}}
+        .exit{{padding:5px;font-size:7px}}
+        .foot{{font-size:7px;letter-spacing:.8px}}
       }}
     </style></head>
     <body><main class="stage {layout_class}">
-      <div class="top"><span>AFTERIMAGE.</span><span>{html.escape(theme_name)}　/　DIGITAL EXHIBITION</span><span>{count:02d} SELECTED WORKS</span></div>
+      <div class="top"><span>AFTERIMAGE.</span><span>{html.escape(theme_name)}　/　DIGITAL EXHIBITION</span><span>{count:02d} SELECTED WORKS　{exit_link}</span></div>
       <header class="heading"><div><div class="eyebrow">AN ONLINE EXHIBITION BY {safe_artist.upper()}</div><h1>{safe_title}</h1></div>
         <div class="description">{safe_desc}</div></header>
-      <section class="gallery {layout_class}">
+      <section class="gallery">
         {''.join(art_html)}
         <div class="text-tile"><small>EXHIBITION NOTE / 01</small><strong>{safe_title}</strong><p>{safe_desc or 'A collection of selected works.'}</p></div>
       </section>
@@ -810,7 +868,7 @@ def exhibition_preview_page():
     selected = [p for p in load_projects() if p.get("name") in draft.get("project_names", [])]
     if not selected:
         selected = draft.get("projects_snapshot", [])
-    page_html = make_exhibition_html(draft, selected)
+    page_html = make_exhibition_html(draft, selected, interactive=True)
     components.html(page_html, height=980, scrolling=True)
 
     st.markdown("### SELECTED PROJECTS")
@@ -851,8 +909,15 @@ def exhibition_preview_page():
 # ------------------------------------------------------------
 
 def exhibition_view_page():
-    apply_light_page_style()
-    render_navigation("EXHIBITION / VIEW")
+    st.markdown("""
+    <style>
+      [data-testid="stAppViewContainer"] {background:#050505 !important;}
+      [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stSidebar"] {display:none !important;}
+      .block-container {padding:0 !important;max-width:none !important;}
+      div[data-testid="stIFrame"] {position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;margin:0 !important;padding:0 !important;}
+      div[data-testid="stIFrame"] iframe {width:100vw !important;height:100vh !important;border:0 !important;}
+    </style>
+    """, unsafe_allow_html=True)
     exhibitions = load_exhibitions()
     exhibition_id = st.session_state.get("selected_exhibition_id")
     exhibition = next((e for e in exhibitions if e.get("id") == exhibition_id), None)
@@ -869,12 +934,6 @@ def exhibition_view_page():
     # to the existing project detail route; no duplicate card list below it.
     page_html = make_exhibition_html(exhibition, selected, interactive=True)
     components.html(page_html, height=900, scrolling=False)
-
-    back_target = st.session_state.get("exhibition_return", "studio")
-    back_label = "← BACK TO EXPLORE" if back_target == "explore" else "← BACK TO MY STUDIO"
-    if st.button(back_label, use_container_width=True):
-        st.session_state.page = back_target
-        st.rerun()
 
 
 def explore_page():
@@ -923,7 +982,7 @@ try:
 except Exception:
     clicked_work_id = None
 
-if clicked_work_id and st.session_state.get("page") == "exhibition_view":
+if clicked_work_id and st.session_state.get("page") in ("exhibition_view", "exhibition_preview"):
     clicked_project = next(
         (p for p in load_projects() if str(p.get("id", "")) == str(clicked_work_id)),
         None
@@ -931,10 +990,22 @@ if clicked_work_id and st.session_state.get("page") == "exhibition_view":
     if clicked_project:
         st.session_state.selected_project_id = clicked_project.get("id")
         st.session_state.selected_project = clicked_project.get("name", "")
-        st.session_state.project_detail_return = "exhibition_view"
+        st.session_state.project_detail_return = st.session_state.page
         st.session_state.page = "project_detail"
     try:
         del st.query_params["work_id"]
+    except Exception:
+        pass
+    st.rerun()
+
+try:
+    close_exhibition = st.query_params.get("close_exhibition")
+except Exception:
+    close_exhibition = None
+if close_exhibition:
+    st.session_state.page = st.session_state.get("exhibition_return", "studio")
+    try:
+        del st.query_params["close_exhibition"]
     except Exception:
         pass
     st.rerun()
@@ -963,4 +1034,3 @@ elif st.session_state.page == "exhibition_view":
 else:
     st.session_state.page = "landing"
     st.rerun()
-
