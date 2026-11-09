@@ -39,7 +39,7 @@ def landing():
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Barlow+Condensed:wght@300;400&display=swap');
     *{{box-sizing:border-box}}
     html,body{{margin:0;width:100%;min-height:100%;background:#050505;overflow-x:hidden;overflow-y:auto}}
-    .hero{{height:100vh; min-height:720px; position:relative; overflow:hidden;
+    .hero{{height:min(100vh, 860px); min-height:680px; position:relative; overflow:hidden;
       background:radial-gradient(ellipse at 73% 45%,#202020 0%,#090909 42%,#030303 75%); color:#eee;}}
     .flower{{position:absolute;inset:0;width:100%;height:100%;
       background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 53%,rgba(5,5,5,.04) 100%),url('{FLOWER}');
@@ -125,7 +125,7 @@ def landing():
       <a class="about-cta" href="#start" data-start-exhibition>START EXHIBITION <span>↗</span></a>
     </section>
     <style>
-      .about{{min-height:470px;background:#11110f;color:#e8e5dc;padding:75px 8% 58px;position:relative;overflow:hidden}}
+      .about{{min-height:860px;background:#11110f;color:#e8e5dc;padding:90px 8% 80px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}}
       .about:before{{content:'';position:absolute;width:420px;height:420px;border:1px solid rgba(243,215,45,.18);border-radius:50%;right:-110px;top:45px;box-shadow:0 0 0 34px rgba(243,215,45,.025),0 0 0 68px rgba(243,215,45,.02)}}
       .about-kicker{{font:10px 'DM Sans',sans-serif;letter-spacing:3px;color:#d9c43b;border-bottom:1px solid #49473a;padding-bottom:18px}}
       .about-grid{{display:grid;grid-template-columns:1.1fr 1fr;gap:8%;align-items:center;padding:58px 0 45px;position:relative;z-index:1}}
@@ -151,7 +151,7 @@ def landing():
     </script>
     </body></html>
     """
-    components.html(html, height=1650, scrolling=False)
+    components.html(html, height=1800, scrolling=False)
 
 
 
