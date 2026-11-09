@@ -54,15 +54,15 @@ def landing():
     .nav span{{padding-right:25px;border-right:1px solid #777}}
     .nav span:last-child{{border:0}}
     .login{{margin-left:auto;color:#ddd}}
-    .hero-copy{{position:absolute;z-index:4;left:6.2%;top:25%;width:58%;animation:rise 1.2s ease both}}
-    @keyframes rise{{from{{opacity:0;transform:translateY(25px)}}to{{opacity:1;transform:translateY(0)}}}}
-    .eyebrow{{font:11px 'DM Sans',sans-serif;letter-spacing:4px;color:#ddd;display:flex;align-items:center;gap:22px}}
-    .eyebrow:after{{content:'';height:1px;width:175px;background:#aaa}}
+    .hero-copy{{position:absolute;z-index:4;left:50%;top:50%;width:min(88%,1050px);transform:translate(-50%,-50%);text-align:center;animation:rise 1.2s ease both}}
+    @keyframes rise{{from{{opacity:0;transform:translate(-50%,-44%)}}to{{opacity:1;transform:translate(-50%,-50%)}}}}
+    .eyebrow{{font:11px 'DM Sans',sans-serif;letter-spacing:4px;color:#ddd;display:flex;align-items:center;justify-content:center;gap:22px}}
+    .eyebrow:before,.eyebrow:after{{content:'';height:1px;width:clamp(35px,9vw,175px);background:#aaa}}
     h1{{font:300 clamp(75px,10.2vw,155px)/.9 'Barlow Condensed',sans-serif;letter-spacing:-3px;
       color:#f3d72d;margin:42px 0 10px;white-space:nowrap}}
     .tag{{font:400 clamp(18px,2.4vw,36px) 'DM Sans',sans-serif;letter-spacing:9px;color:#f3d72d;white-space:nowrap}}
-    .desc{{margin-top:44px;border-left:1px solid #ddd;padding:4px 0 4px 30px;
-      color:#ccc;font:10px/2 'DM Sans',sans-serif;letter-spacing:3px}}
+    .desc{{margin:38px auto 0;border:0;padding:0;
+      color:#ccc;font:10px/2 'DM Sans',sans-serif;letter-spacing:3px;text-align:center}}
     .curve{{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}}
     .curve path{{fill:none;stroke:rgba(235,235,235,.8);stroke-width:.8;stroke-dasharray:1800;stroke-dashoffset:1800;
       animation:draw 5s ease forwards .3s}}
@@ -81,8 +81,8 @@ def landing():
     @media(max-width:760px){{
       .hero{{min-height:680px;height:90vh}} .top{{left:5%;right:5%;gap:12px}}
       .brand{{font-size:18px;margin-right:0}} .nav{{gap:10px;font-size:8px}} .nav span{{padding-right:10px}}
-      .hero-copy{{top:29%;width:88%;left:6%}} h1{{font-size:clamp(64px,13vw,100px)}}
-      .tag{{letter-spacing:4px}} .flower{{background-position:62% center;opacity:.72}}
+      .hero-copy{{top:50%;left:50%;width:92%;transform:translate(-50%,-50%)}} h1{{font-size:clamp(64px,13vw,100px)}}
+      .tag{{letter-spacing:4px}} .eyebrow:before,.eyebrow:after{{width:28px}} .flower{{background-position:62% center;opacity:.72}}
       .index{{right:5%;top:auto;bottom:18%;}} .desc{{margin-top:30px}}
       .bottom{{font-size:8px;letter-spacing:1.5px}}
     }}
@@ -122,6 +122,7 @@ def landing():
         </div>
       </div>
       <div class="about-decoration">A / 01</div>
+      <a class="about-cta" href="#start" data-start-exhibition>START EXHIBITION <span>↗</span></a>
     </section>
     <style>
       .about{{min-height:470px;background:#11110f;color:#e8e5dc;padding:75px 8% 58px;position:relative;overflow:hidden}}
@@ -135,21 +136,22 @@ def landing():
       .about-rule{{height:1px;background:#5d5940;margin:25px 0 17px;width:100%}}
       .about-foot{{font-size:8px;letter-spacing:2px;color:#d9c43b}}
       .about-decoration{{position:absolute;right:8%;bottom:22px;font:11px 'DM Sans',sans-serif;letter-spacing:3px;color:#666}}
+      .about-cta{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;text-decoration:none;font:10px 'DM Sans',sans-serif;letter-spacing:2px;transition:background .3s,color .3s,transform .3s;position:relative;z-index:2}}
+      .about-cta:hover{{background:#f3d72d;color:#080808;transform:translateY(-3px)}}
+      .about-cta span{{font-size:17px}}
       @media(max-width:760px){{.about{{padding:55px 7% 65px}}.about-grid{{grid-template-columns:1fr;gap:28px;padding:42px 0}}.about h2{{font-size:64px}}.about-copy .about-lead{{font-size:14px}}}}
     </style>
+    <script>
+      document.querySelector('[data-start-exhibition]')?.addEventListener('click', ev => {{
+        ev.preventDefault();
+        const target = new URL(window.parent.location.href);
+        target.searchParams.set('landing_action', 'studio');
+        window.parent.location.assign(target.toString());
+      }});
+    </script>
     </body></html>
     """
-    components.html(html, height=1450, scrolling=False)
-
-    a, b, c = st.columns([1.1, 1.1, 4])
-    with a:
-        if st.button("START EXHIBITION  ↗", use_container_width=True):
-            st.session_state.page = "studio"
-            st.rerun()
-    with b:
-        if st.button("EXPLORE EXHIBITIONS", use_container_width=True):
-            st.session_state.page = "explore"
-            st.rerun()
+    components.html(html, height=1650, scrolling=False)
 
 
 
@@ -552,7 +554,7 @@ def project_detail_page():
         st.caption("CATEGORY　" + project.get("category", ""))
         st.caption("DATE　" + project.get("date", ""))
 
-    if st.button("← BACK", use_container_width=False):
+    if st.button("← BACK TO EXHIBITION" if st.session_state.get("project_detail_return") in ("exhibition_view", "exhibition_preview") else "← BACK", use_container_width=False):
         st.session_state.page = st.session_state.get("project_detail_return", "studio")
         st.rerun()
 
@@ -696,8 +698,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            opening = (f'<a class="art-link" href="?work_id={html.escape(project_id, quote=True)}" '
-                       f'target="_top" aria-label="View {name}">')
+            opening = (f'<a class="art-link" href="#work-{html.escape(project_id, quote=True)}" '
+                       f'data-work-id="{html.escape(project_id, quote=True)}" aria-label="View {name}">')
             closing = '</a>'
         else:
             opening, closing = '<div class="art-link">', '</div>'
@@ -715,7 +717,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<a class="exit" href="?close_exhibition=1" target="_top">CLOSE　×</a>' if interactive else ''
+    exit_link = '<button class="exit" type="button" data-close-exhibition>CLOSE　×</button>' if interactive else ''
 
     page_html = f"""
     <!doctype html><html><head><meta charset="utf-8">
@@ -724,10 +726,11 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       *{{box-sizing:border-box}}
       html,body{{margin:0;width:100%;height:100%;background:{bg};color:{fg};font-family:Arial,sans-serif}}
       body{{overflow-x:hidden}}
-      .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden;position:relative}}
+      .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden;position:relative;isolation:isolate}}
+      .stage:before{{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.16;background-image:radial-gradient(currentColor .55px,transparent .55px);background-size:17px 17px}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.8}}
-      .exit:hover{{background:{accent};color:#111;border-color:{accent}}}
+      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
+      .exit:hover{{background:{accent};color:#111;border-color:{accent};opacity:1}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
       h1{{font:normal clamp(26px,4vw,52px)/.98 {font};letter-spacing:-1px;margin:0;overflow-wrap:anywhere}}
@@ -738,7 +741,11 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       @keyframes artReveal{{from{{opacity:0;transform:translateY(16px) scale(.985)}}to{{opacity:1;transform:translateY(0) scale(1)}}}}
       .art-link{{position:absolute;inset:0;display:block;color:inherit;text-decoration:none;cursor:pointer;z-index:1}}
       .art img{{width:100%;height:100%;position:absolute;inset:0;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.2,.7,.2,1),filter .8s ease}}
-      .art:hover img{{transform:scale(1.055);filter:saturate(1.12)}}
+      .art:hover img{{transform:scale(1.075);filter:saturate(1.18) contrast(1.04)}}
+      .art{{transition:box-shadow .5s ease,filter .5s ease}}
+      .art:hover{{box-shadow:0 18px 48px rgba(0,0,0,.22);filter:brightness(1.04)}}
+      .stage:after{{content:'✳';position:absolute;right:4vw;top:16vh;font:clamp(90px,17vw,240px) Georgia,serif;opacity:.055;pointer-events:none;z-index:0;animation:drift 12s ease-in-out infinite alternate}}
+      @keyframes drift{{from{{transform:translate3d(0,-8px,0) rotate(-8deg)}}to{{transform:translate3d(-18px,14px,0) rotate(9deg)}}}}
       .art:after{{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.62));pointer-events:none;z-index:2}}
       .art-meta{{position:absolute;z-index:3;left:12px;right:12px;bottom:11px;color:white;display:flex;align-items:baseline;gap:8px;pointer-events:none}}
       .art-meta span{{font-size:8px;color:{accent};letter-spacing:1px}}
@@ -756,6 +763,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       /* WHITE SPACE: airy, ivory editorial collage with generous margins and a fine grid. */
       .white-space{{background:#f6f5f0}}
       .white-space .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:10px}}
+      .white-space .stage:after{{content:'❀';color:#b7a65c;opacity:.12}}
+      .white-space .art{{box-shadow:0 8px 25px rgba(45,40,30,.08)}}
       .white-space .art{{background:#e8e6df}}
       .white-space .art-0{{grid-column:1/span 4;grid-row:1/span 5}}
       .white-space .art-1{{grid-column:5/span 4;grid-row:1/span 2}}
@@ -772,6 +781,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .black-box h1{{font:300 clamp(44px,8vw,108px)/.86 'Arial Narrow',Arial,sans-serif;letter-spacing:-3px;text-transform:uppercase}}
       .black-box .description{{border-left:1px solid #e8d12c;padding:8px 0 8px 18px;text-align:left}}
       .black-box .gallery{{grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:12px}}
+      .black-box .stage:after{{content:'◉';color:#e8d12c;text-shadow:0 0 35px #e8d12c;opacity:.16}}
+      .black-box .art:hover{{box-shadow:0 0 0 1px #e8d12c,0 0 34px rgba(232,209,44,.18)}}
       .black-box .art{{background:#15171b;border:1px solid #34363a;box-shadow:0 15px 38px rgba(0,0,0,.35)}}
       .black-box .art-0{{grid-column:1/span 4;grid-row:1/span 5}}
       .black-box .art-1{{grid-column:5/span 3;grid-row:1/span 3}}
@@ -788,6 +799,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .color-field h1{{font:900 clamp(40px,7vw,94px)/.82 Arial,sans-serif;letter-spacing:-5px;text-transform:uppercase;color:#f4e83a;max-width:70%}}
       .color-field .eyebrow{{color:#f4e83a}}
       .color-field .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:9px}}
+      .color-field .stage:after{{content:'✳';color:#f4e83a;opacity:.22;transform:rotate(18deg)}}
+      .color-field .art:hover{{box-shadow:10px 12px 0 #f4e83a,0 0 28px rgba(244,232,58,.2)}}
       .color-field .art{{border:3px solid #f4e83a;background:#151078;box-shadow:7px 7px 0 #0d086c}}
       .color-field .art-0{{grid-column:1/span 4;grid-row:1/span 5;transform:rotate(-1.5deg)}}
       .color-field .art-1{{grid-column:5/span 4;grid-row:1/span 3;transform:rotate(1deg)}}
@@ -805,6 +818,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .editorial h1{{font:normal clamp(42px,6vw,80px)/.95 Georgia,serif;letter-spacing:-2px}}
       .editorial .description{{font:italic 12px/1.8 Georgia,serif;max-width:260px}}
       .editorial .gallery{{display:flex;align-items:center;justify-content:flex-start;gap:clamp(14px,2.4vw,34px);min-height:0;padding:24px 2vw;overflow-x:auto;scrollbar-width:thin}}
+      .editorial .stage:after{{content:'❧';font-style:italic;color:#9b805d;opacity:.12}}
+      .editorial .art{{box-shadow:5px 8px 18px rgba(65,48,32,.13)}}
       .editorial .art{{flex:0 0 clamp(150px,17vw,240px);height:min(55vh,430px);background:#d8d1c8}}
       .editorial .art:nth-child(2n){{height:min(42vh,330px);transform:translateY(18px)}}
       .editorial .art:nth-child(3n){{height:min(62vh,470px);transform:translateY(-16px)}}
@@ -816,6 +831,8 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .playground .heading{{align-items:center}}
       .playground h1{{font:900 clamp(34px,5vw,70px)/.9 Arial,sans-serif;letter-spacing:-3px;color:#3730a3}}
       .playground .gallery{{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:12px;padding:8px 3vw}}
+      .playground .stage:after{{content:'✿';color:#6158c8;opacity:.18;animation:drift 8s ease-in-out infinite alternate-reverse}}
+      .playground .art:hover{{transform:translateY(-7px) rotate(0deg) scale(1.015);box-shadow:0 22px 35px rgba(54,48,163,.25)}}
       .playground .art{{border:5px solid #fff;border-radius:3px;box-shadow:0 14px 25px rgba(54,48,163,.18)}}
       .playground .art-0{{grid-column:2/span 3;grid-row:1/span 4;transform:rotate(-4deg)}}
       .playground .art-1{{grid-column:6/span 3;grid-row:2/span 4;transform:rotate(3deg)}}
@@ -849,7 +866,34 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         <div class="text-tile"><small>EXHIBITION NOTE / 01</small><strong>{safe_title}</strong><p>{safe_desc or 'A collection of selected works.'}</p></div>
       </section>
       <footer class="foot"><span>SELECTED WORKS　/　{count:02d}</span><span>CLICK AN ARTWORK TO EXPLORE</span></footer>
-    </main></body></html>
+    </main>
+    <script>
+    (() => {{
+      const navigateParent = (key, value) => {{
+        try {{
+          const target = new URL(window.parent.location.href);
+          target.searchParams.delete('work_id');
+          target.searchParams.delete('close_exhibition');
+          target.searchParams.set(key, value);
+          window.parent.location.assign(target.toString());
+        }} catch (err) {{
+          const base = window.location.href.split('?')[0];
+          window.top.location.href = base + '?' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+        }}
+      }};
+      document.querySelectorAll('[data-work-id]').forEach(el => {{
+        el.addEventListener('click', ev => {{
+          ev.preventDefault(); ev.stopPropagation();
+          navigateParent('work_id', el.getAttribute('data-work-id'));
+        }});
+      }});
+      const close = document.querySelector('[data-close-exhibition]');
+      if (close) close.addEventListener('click', ev => {{
+        ev.preventDefault(); ev.stopPropagation(); navigateParent('close_exhibition', '1');
+      }});
+    }})();
+    </script>
+    </body></html>
     """
     return page_html
 
@@ -909,15 +953,6 @@ def exhibition_preview_page():
 # ------------------------------------------------------------
 
 def exhibition_view_page():
-    st.markdown("""
-    <style>
-      [data-testid="stAppViewContainer"] {background:#050505 !important;}
-      [data-testid="stHeader"], [data-testid="stToolbar"], [data-testid="stSidebar"] {display:none !important;}
-      .block-container {padding:0 !important;max-width:none !important;}
-      div[data-testid="stIFrame"] {position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;margin:0 !important;padding:0 !important;}
-      div[data-testid="stIFrame"] iframe {width:100vw !important;height:100vh !important;border:0 !important;}
-    </style>
-    """, unsafe_allow_html=True)
     exhibitions = load_exhibitions()
     exhibition_id = st.session_state.get("selected_exhibition_id")
     exhibition = next((e for e in exhibitions if e.get("id") == exhibition_id), None)
@@ -930,10 +965,20 @@ def exhibition_view_page():
         return
 
     selected = get_exhibition_projects(exhibition)
-    # The full-screen collage is the exhibition. Each artwork is a real link
-    # to the existing project detail route; no duplicate card list below it.
+    theme = THEMES.get(exhibition.get("theme", "WHITE SPACE"), THEMES["WHITE SPACE"])
+    # Match the Streamlit canvas to the exhibition before mounting the iframe;
+    # this removes the black intermediate frame during reruns.
+    st.markdown(f"""
+    <style>
+      html, body, [data-testid=\"stAppViewContainer\"] {{background:{theme['bg']} !important;}}
+      [data-testid=\"stHeader\"], [data-testid=\"stToolbar\"], [data-testid=\"stSidebar\"] {{display:none !important;}}
+      .block-container {{padding:0 !important;max-width:none !important;margin:0 !important;}}
+      div[data-testid=\"stIFrame\"] {{position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;margin:0 !important;padding:0 !important;background:{theme['bg']} !important;}}
+      div[data-testid=\"stIFrame\"] iframe {{width:100vw !important;height:100vh !important;border:0 !important;background:{theme['bg']} !important;}}
+    </style>
+    """, unsafe_allow_html=True)
     page_html = make_exhibition_html(exhibition, selected, interactive=True)
-    components.html(page_html, height=900, scrolling=False)
+    components.html(page_html, height=1000, scrolling=False)
 
 
 def explore_page():
@@ -1012,8 +1057,19 @@ if close_exhibition:
 
 
 # ------------------------------------------------------------
-# PAGE ROUTER
+# LANDING CTA / PAGE ROUTER
 # ------------------------------------------------------------
+try:
+    landing_action = st.query_params.get("landing_action")
+except Exception:
+    landing_action = None
+if landing_action in ("studio", "explore"):
+    st.session_state.page = landing_action
+    try:
+        del st.query_params["landing_action"]
+    except Exception:
+        pass
+    st.rerun()
 
 if st.session_state.page == "landing":
     landing()
