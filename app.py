@@ -766,8 +766,9 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            opening = (f'<a class="art-link" href="#work-{html.escape(project_id, quote=True)}" '
-                       f'data-work-id="{html.escape(project_id, quote=True)}" aria-label="View {name}">')
+            # Native top-level navigation avoids blocked iframe parent-script access.
+            opening = (f'<a class="art-link" href="?work_id={html.escape(project_id, quote=True)}" '
+                       f'target="_top" aria-label="View {name}">')
             closing = '</a>'
         else:
             opening, closing = '<div class="art-link">', '</div>'
@@ -785,7 +786,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<button class="exit" type="button" data-close-exhibition>CLOSE　×</button>' if interactive else ''
+    exit_link = '<a class="exit" href="?close_exhibition=1" target="_top" aria-label="Close exhibition">×</a>' if interactive else ''
     theme_decor = f'<div class="theme-decor {layout_class}-decor" aria-hidden="true"><i class="decor-orb orb-one"></i><i class="decor-orb orb-two"></i><i class="decor-line line-one"></i><i class="decor-line line-two"></i><i class="decor-label">AFTERIMAGE　/　{html.escape(theme_name)}</i></div>'
 
     page_html = f"""
@@ -806,7 +807,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .decor-label{{position:absolute;right:3.5%;bottom:8%;font:7px Arial,sans-serif;letter-spacing:2px;opacity:.28;transform:rotate(-90deg);transform-origin:right bottom}}
       .heading,.gallery,.top,.foot{{position:relative;z-index:2}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:4px 7px;font-size:7px;letter-spacing:1px;opacity:.72;background:transparent;cursor:pointer;font-family:inherit;position:absolute;right:0;top:0;z-index:50;pointer-events:auto;line-height:1.2}}
+      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;opacity:.62;background:transparent;cursor:pointer;font-family:Arial,sans-serif;position:absolute;right:0;top:0;z-index:50;pointer-events:auto}}
       .exit:hover{{background:{accent};color:#111;border-color:{accent};opacity:1}}
       .top{{position:relative;padding-right:58px}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
@@ -967,25 +968,6 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       </section>
       <footer class="foot"><span>SELECTED WORKS　/　{count:02d}</span><span>CLICK AN ARTWORK TO EXPLORE</span></footer>
     </main>
-    <script>
-    (() => {{
-      const navigateParent = (key, value) => {{
-        // Cross-origin Location setters are permitted from a user click; reading
-        // parent.location is not. Replace the top-level query without inspecting it.
-        window.top.location.search = key + '=' + encodeURIComponent(value);
-      }};
-      document.querySelectorAll('[data-work-id]').forEach(el => {{
-        el.addEventListener('click', ev => {{
-          ev.preventDefault(); ev.stopPropagation();
-          navigateParent('work_id', el.getAttribute('data-work-id'));
-        }});
-      }});
-      const close = document.querySelector('[data-close-exhibition]');
-      if (close) close.addEventListener('click', ev => {{
-        ev.preventDefault(); ev.stopPropagation(); navigateParent('close_exhibition', '1');
-      }});
-    }})();
-    </script>
     </body></html>
     """
     return page_html
@@ -1116,8 +1098,8 @@ def explore_page():
 # ------------------------------------------------------------
 # COLLAGE ARTWORK CLICK -> EXISTING PROJECT DETAIL ROUTE
 # ------------------------------------------------------------
-# components.html lives in an iframe, so artwork anchors navigate the top
-# Streamlit page with ?work_id=... . Convert that URL into session state here.
+# Artwork links target the top-level Streamlit URL with ?work_id=...
+# Convert that URL into session state here.
 try:
     clicked_work_id = st.query_params.get("work_id")
 except Exception:
