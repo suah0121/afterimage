@@ -32,134 +32,183 @@ html, body, [data-testid="stAppViewContainer"] {background:#050505 !important;}
 
 
 def landing():
-    html = f"""
-    <!doctype html><html><head><meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    """AFTERIMAGE landing: working Streamlit navigation with the original visual language."""
+    st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Barlow+Condensed:wght@300;400&display=swap');
-    *{{box-sizing:border-box}}
-    html,body{{margin:0;width:100%;min-height:100%;background:#050505;overflow-x:hidden;overflow-y:auto}}
-    .hero{{height:min(100vh, 860px); min-height:680px; position:relative; overflow:hidden;
-      background:radial-gradient(ellipse at 73% 45%,#202020 0%,#090909 42%,#030303 75%); color:#eee;}}
-    .flower{{position:absolute;inset:0;width:100%;height:100%;
-      background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 53%,rgba(5,5,5,.04) 100%),url('{FLOWER}');
-      background-size:cover;background-position:center center;background-repeat:no-repeat;
-      opacity:.94;filter:none;pointer-events:none;
-      transform-origin:72% 50%;animation:petal 16s ease-in-out infinite alternate;}}
-    @keyframes petal{{from{{transform:rotate(-1.1deg) scale(1)}}to{{transform:rotate(1.1deg) scale(1.035)}}}}
-    .top{{position:absolute;z-index:5;left:5%;right:5%;top:32px;display:flex;align-items:center;gap:45px;
-      font:10px 'DM Sans',sans-serif;letter-spacing:2.5px}}
-    .brand{{font:300 24px 'Barlow Condensed',sans-serif;color:#f1d72d;letter-spacing:2px;margin-right:20px;white-space:nowrap}}
-    .nav{{display:flex;gap:25px;align-items:center;color:#ddd}}
-    .nav span{{padding-right:25px;border-right:1px solid #777}}
-    .nav span:last-child{{border:0}}
-    .login{{margin-left:auto;color:#ddd}}
-    .hero-copy{{position:absolute;z-index:4;left:8%;top:50%;width:min(76%,1050px);transform:translateY(-50%);text-align:left;animation:rise 1.2s ease both}}
-    @keyframes rise{{from{{opacity:0;transform:translateY(-44%)}}to{{opacity:1;transform:translateY(-50%)}}}}
-    .eyebrow{{font:11px 'DM Sans',sans-serif;letter-spacing:4px;color:#ddd;display:flex;align-items:center;justify-content:flex-start;gap:22px}}
-    .eyebrow:before,.eyebrow:after{{content:'';height:1px;width:clamp(35px,9vw,175px);background:#aaa}}
-    h1{{font:300 clamp(75px,10.2vw,155px)/.9 'Barlow Condensed',sans-serif;letter-spacing:-3px;
-      color:#f3d72d;margin:42px 0 10px;white-space:nowrap}}
-    .tag{{font:400 clamp(18px,2.4vw,36px) 'DM Sans',sans-serif;letter-spacing:9px;color:#f3d72d;white-space:nowrap}}
-    .desc{{margin:38px 0 0;border:0;padding:0;
-      color:#ccc;font:10px/2 'DM Sans',sans-serif;letter-spacing:3px;text-align:left}}
-    .curve{{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}}
-    .curve path{{fill:none;stroke:rgba(235,235,235,.8);stroke-width:.8;stroke-dasharray:1800;stroke-dashoffset:1800;
-      animation:draw 5s ease forwards .3s}}
-    .curve path.second{{stroke:rgba(220,220,220,.45);animation-delay:1s}}
-    @keyframes draw{{to{{stroke-dashoffset:0}}}}
-    .index{{position:absolute;z-index:5;right:6%;top:45%;display:grid;gap:13px;
-      font:11px 'DM Sans',sans-serif;letter-spacing:2px;color:#999}}
-    .index b{{color:#f3d72d;font-weight:400}}
-    .index b:after{{content:'';display:inline-block;width:42px;height:1px;background:#f3d72d;margin:0 0 3px 12px}}
-    .bottom{{position:absolute;z-index:5;bottom:34px;left:5%;right:5%;display:flex;justify-content:space-between;
-      align-items:center;font:10px 'DM Sans',sans-serif;letter-spacing:3px;color:#ddd}}
-    .scroll{{display:flex;gap:18px;align-items:center}}
-    .mouse{{width:15px;height:25px;border:1px solid #ddd;border-radius:10px;position:relative}}
-    .mouse:after{{content:'';position:absolute;width:1px;height:6px;background:#ddd;left:6px;top:4px}}
-    .motto{{text-align:right;line-height:1.8}}
-    @media(max-width:760px){{
-      .hero{{min-height:680px;height:90vh}} .top{{left:5%;right:5%;gap:12px}}
-      .brand{{font-size:18px;margin-right:0}} .nav{{gap:10px;font-size:8px}} .nav span{{padding-right:10px}}
-      .hero-copy{{top:50%;left:7%;width:86%;transform:translateY(-50%);text-align:left}} .eyebrow{{justify-content:flex-start}} h1{{font-size:clamp(64px,13vw,100px)}}
-      .tag{{letter-spacing:4px}} .eyebrow:before,.eyebrow:after{{width:28px}} .flower{{background-position:62% center;opacity:.72}}
-      .index{{right:5%;top:auto;bottom:18%;}} .desc{{margin-top:30px}}
-      .bottom{{font-size:8px;letter-spacing:1.5px}}
-    }}
-    </style></head><body>
-    <main class="hero">
-      <div class="flower"></div>
-      <header class="top">
-        <div class="brand">AFTERIMAGE.</div>
-        <nav class="nav"><span>EXPLORE</span><span>CREATE</span><span>ABOUT</span></nav>
-        <div class="login">⌕　│　LOGIN</div>
-      </header>
-      <svg class="curve" viewBox="0 0 1440 900" preserveAspectRatio="none">
-        <path d="M690 -30 C520 110 660 380 970 270 S1260 85 1510 20"/>
-        <path class="second" d="M-50 610 C180 800 380 560 600 590 S900 690 1050 820"/>
-      </svg>
-      <section class="hero-copy">
-        <div class="eyebrow">DIGITAL ART EXHIBITION PLATFORM</div>
-        <h1>AFTERIMAGE.</h1>
-        <div class="tag">YOUR ART. YOUR WORLD.</div>
-        <div class="desc">AN EXHIBITION THAT STAYS WITH YOU.<br>CREATE, EXHIBIT, AND SHARE<br>YOUR OWN ARTISTIC SPACE.</div>
-      </section>
-      <div class="index"><b>01</b><span>02</span><span>03</span></div>
-      <footer class="bottom">
-        <div class="scroll"><span class="mouse"></span><span>SCROLL　＋</span></div>
-        <div class="motto">SOME MOMENTS.<br>LIVE FOREVER.　 ─────</div>
-      </footer>
-    </main>
-    <section class="about" id="about">
-      <div class="about-kicker">BEYOND THE FRAME　/　ABOUT AFTERIMAGE.</div>
-      <div class="about-grid">
-        <h2>MAKE YOUR<br><em>ART</em> REMAIN.</h2>
-        <div class="about-copy">
-          <p class="about-lead">AFTERIMAGE.는 창작물을 모으고, 하나의 감각적인 디지털 전시로 엮어내는 공간입니다.</p>
-          <p>작품을 등록하고, 전시의 분위기를 선택하고, 나만의 시선으로 작품을 배치해 보세요. 서로 다른 작업들이 하나의 이야기와 경험으로 이어집니다.</p>
-          <div class="about-rule"></div>
-          <div class="about-foot">COLLECT YOUR WORKS.　CURATE YOUR STORY.　LEAVE AN AFTERIMAGE.</div>
-        </div>
-      </div>
-      <div class="about-decoration">A / 01</div>
-      <!-- Navigation controls are rendered by Streamlit below the intro. -->
-    </section>
-    <style>
-      .about{{min-height:860px;background:#11110f;color:#e8e5dc;padding:90px 8% 80px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}}
-      .about:before{{content:'';position:absolute;width:420px;height:420px;border:1px solid rgba(243,215,45,.18);border-radius:50%;right:-110px;top:45px;box-shadow:0 0 0 34px rgba(243,215,45,.025),0 0 0 68px rgba(243,215,45,.02)}}
-      .about-kicker{{font:10px 'DM Sans',sans-serif;letter-spacing:3px;color:#d9c43b;border-bottom:1px solid #49473a;padding-bottom:18px}}
-      .about-grid{{display:grid;grid-template-columns:1.1fr 1fr;gap:8%;align-items:center;padding:58px 0 45px;position:relative;z-index:1}}
-      .about h2{{font:300 clamp(54px,7vw,100px)/.88 'Barlow Condensed',sans-serif;letter-spacing:-1px;margin:0;color:#e8e5dc}}
-      .about h2 em{{font-style:normal;color:#f3d72d}}
-      .about-copy{{max-width:510px;font:12px/2 'DM Sans',sans-serif;color:#aaa99f;letter-spacing:.3px}}
-      .about-copy .about-lead{{font-size:16px;line-height:1.8;color:#eeeae0;margin:0 0 18px}}
-      .about-rule{{height:1px;background:#5d5940;margin:25px 0 17px;width:100%}}
-      .about-foot{{font-size:8px;letter-spacing:2px;color:#d9c43b}}
-      .about-decoration{{position:absolute;right:8%;bottom:22px;font:11px 'DM Sans',sans-serif;letter-spacing:3px;color:#666}}
-      .about-cta{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;text-decoration:none;font:10px 'DM Sans',sans-serif;letter-spacing:2px;transition:background .3s,color .3s,transform .3s;position:relative;z-index:2}}
-      .about-cta:hover{{background:#f3d72d;color:#080808;transform:translateY(-3px)}}
-      .about-cta span{{font-size:17px}}
-      @media(max-width:760px){{.about{{padding:55px 7% 65px}}.about-grid{{grid-template-columns:1fr;gap:28px;padding:42px 0}}.about h2{{font-size:64px}}.about-copy .about-lead{{font-size:14px}}}}
+      .landing-nav{display:flex;align-items:center;gap:0;border-bottom:1px solid rgba(230,230,220,.18);
+        padding:12px 0 17px;margin:0 0 0;background:#050505;color:#ddd}
+      .landing-brand{font:300 27px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:#f1d72d;white-space:nowrap}
+      .landing-nav-label{font:10px 'DM Sans',sans-serif;letter-spacing:2.5px;color:#ccc}
+      div[data-testid="stHorizontalBlock"]:has(.landing-nav-label) .stButton>button,
+      .landing-menu .stButton>button{background:transparent!important;border:0!important;color:#ccc!important;
+        min-height:28px!important;padding:0 12px!important;font:500 10px 'DM Sans',sans-serif!important;
+        letter-spacing:2px!important;border-radius:0!important}
+      .landing-menu .stButton>button:hover{color:#f3d72d!important;background:transparent!important}
+      .st-key-landing_nav_explore button,.st-key-landing_nav_create button,.st-key-landing_nav_about button{
+        background:transparent!important;border:0!important;color:#ccc!important;min-height:28px!important;
+        padding:0 10px!important;font:500 10px 'DM Sans',sans-serif!important;letter-spacing:2px!important;border-radius:0!important}
+      .st-key-landing_nav_explore button:hover,.st-key-landing_nav_create button:hover,.st-key-landing_nav_about button:hover{
+        color:#f3d72d!important;background:transparent!important}
+      .st-key-landing_my_studio button,.st-key-landing_exhibitions button{background:transparent!important;
+        border:1px solid rgba(243,215,45,.65)!important;color:#e8e5dc!important;border-radius:0!important;
+        min-height:46px!important;font:10px 'DM Sans',sans-serif!important;letter-spacing:2px!important;transition:all .25s ease!important}
+      .st-key-landing_my_studio button:hover,.st-key-landing_exhibitions button:hover{background:#f3d72d!important;
+        color:#080808!important;border-color:#f3d72d!important;transform:translateY(-2px)}
+      .landing-hero{height:690px;position:relative;overflow:hidden;background:#050505;color:#eee}
+      .landing-hero .flower{position:absolute;inset:0;background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 58%,rgba(5,5,5,.08) 100%),url('__FLOWER__');
+        background-size:cover;background-position:center 48%;opacity:.92;animation:landingPetal 16s ease-in-out infinite alternate}
+      @keyframes landingPetal{from{transform:scale(1)}to{transform:scale(1.035)}}
+      .landing-hero-copy{position:absolute;left:8%;top:49%;transform:translateY(-50%);z-index:2;width:65%}
+      .landing-eyebrow{display:flex;align-items:center;gap:22px;font:10px 'DM Sans',sans-serif;letter-spacing:3.5px;color:#ddd}
+      .landing-eyebrow:before,.landing-eyebrow:after{content:'';height:1px;width:clamp(45px,9vw,165px);background:#aaa}
+      .landing-title{font:300 clamp(72px,9.6vw,142px)/.9 'Barlow Condensed',sans-serif;letter-spacing:-2.5px;color:#f3d72d;margin:34px 0 8px;white-space:nowrap}
+      .landing-tag{font:400 clamp(17px,2.1vw,31px) 'DM Sans',sans-serif;letter-spacing:7px;color:#f3d72d;white-space:nowrap}
+      .landing-desc{margin-top:32px;font:10px/2 'DM Sans',sans-serif;letter-spacing:2.6px;color:#ccc}
+      .landing-curve{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+      .landing-curve path{fill:none;stroke:rgba(235,235,235,.72);stroke-width:.8;stroke-dasharray:1800;stroke-dashoffset:1800;animation:landingDraw 5s ease forwards .3s}
+      .landing-curve path:nth-child(2){stroke:rgba(220,220,220,.4);animation-delay:1s}
+      @keyframes landingDraw{to{stroke-dashoffset:0}}
+      .landing-index{position:absolute;right:6%;top:47%;display:grid;gap:13px;font:11px 'DM Sans',sans-serif;letter-spacing:2px;color:#999}
+      .landing-index b{font-weight:400;color:#f3d72d}
+      .landing-cta-label{font:9px 'DM Sans',sans-serif;letter-spacing:3px;color:#aaa;margin:24px 0 10px}
+      .landing-cta-row .stButton>button{background:transparent!important;border:1px solid rgba(243,215,45,.65)!important;
+        color:#e8e5dc!important;border-radius:0!important;min-height:46px!important;font:10px 'DM Sans',sans-serif!important;
+        letter-spacing:2px!important;transition:all .25s ease!important}
+      .landing-cta-row .stButton>button:hover{background:#f3d72d!important;color:#080808!important;border-color:#f3d72d!important;transform:translateY(-2px)}
+      .landing-footer{border-top:1px solid rgba(230,230,220,.18);margin-top:45px;padding:18px 0 28px;display:flex;justify-content:space-between;gap:20px;
+        color:#777;font:9px/1.8 'DM Sans',sans-serif;letter-spacing:1.3px}
+      @media(max-width:760px){.landing-hero{height:620px}.landing-hero-copy{left:6%;width:88%}.landing-title{font-size:clamp(62px,13vw,96px)}.landing-tag{letter-spacing:3px}.landing-eyebrow{font-size:8px;letter-spacing:2px;gap:9px}.landing-eyebrow:before,.landing-eyebrow:after{width:25px}.landing-index{right:5%}.landing-footer{flex-direction:column}}
     </style>
+    """, unsafe_allow_html=True)
 
-    </body></html>
-    """
-    components.html(html, height=1800, scrolling=False)
-
-    st.markdown("""<style>
-    div[data-testid="stButton"] button[kind="primary"] {width:100%;min-height:68px!important;border-radius:0!important;background:#f3d72d!important;border:1px solid #f3d72d!important;color:#090909!important;font-size:11px!important;letter-spacing:2px!important}
-    div[data-testid="stButton"] button[kind="secondary"] {width:100%;min-height:68px!important;border-radius:0!important;background:transparent!important;border:1px solid #d9c43b!important;color:#f3d72d!important;font-size:11px!important;letter-spacing:2px!important}
-    </style>""", unsafe_allow_html=True)
-    studio_col, explore_col = st.columns(2, gap="small")
-    with studio_col:
-        if st.button("MY STUDIO  ↗", key="landing_my_studio", type="primary", use_container_width=True):
-            st.session_state.page = "studio"
-            st.rerun()
+    left, spacer, explore_col, create_col, about_col = st.columns([1.7, 2.2, .8, .8, .7])
+    with left:
+        st.markdown('<div class="landing-brand">AFTERIMAGE.</div>', unsafe_allow_html=True)
     with explore_col:
-        if st.button("EXPLORE EXHIBITIONS  ↗", key="landing_explore", type="secondary", use_container_width=True):
-            st.session_state.page = "explore"
-            st.rerun()
+        if st.button("EXPLORE", key="landing_nav_explore"):
+            st.session_state.page = "explore"; st.rerun()
+    with create_col:
+        if st.button("CREATE", key="landing_nav_create"):
+            st.session_state.page = "studio"; st.rerun()
+    with about_col:
+        if st.button("ABOUT", key="landing_nav_about"):
+            st.session_state.page = "about"; st.rerun()
 
+    hero = f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Barlow+Condensed:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+      *{{box-sizing:border-box}}html,body{{margin:0;width:100%;height:100%;overflow:hidden;background:#050505}}
+      .landing-hero{{height:690px;position:relative;overflow:hidden;background:#050505;color:#eee}}
+      .flower{{position:absolute;inset:0;background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 58%,rgba(5,5,5,.08) 100%),url('{FLOWER}');background-size:cover;background-position:center 48%;opacity:.92;animation:landingPetal 16s ease-in-out infinite alternate}}
+      @keyframes landingPetal{{from{{transform:scale(1)}}to{{transform:scale(1.035)}}}}
+      .landing-hero-copy{{position:absolute;left:8%;top:49%;transform:translateY(-50%);z-index:2;width:65%}}
+      .landing-eyebrow{{display:flex;align-items:center;gap:22px;font:10px 'DM Sans',sans-serif;letter-spacing:3.5px;color:#ddd}}
+      .landing-eyebrow:before,.landing-eyebrow:after{{content:'';height:1px;width:clamp(45px,9vw,165px);background:#aaa}}
+      .landing-title{{font:300 clamp(72px,9.6vw,142px)/.9 'Barlow Condensed',sans-serif;letter-spacing:-2.5px;color:#f3d72d;margin:34px 0 8px;white-space:nowrap}}
+      .landing-tag{{font:400 clamp(17px,2.1vw,31px) 'DM Sans',sans-serif;letter-spacing:7px;color:#f3d72d;white-space:nowrap}}
+      .landing-desc{{margin-top:32px;font:10px/2 'DM Sans',sans-serif;letter-spacing:2.6px;color:#ccc}}
+      .landing-curve{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}}
+      .landing-curve path{{fill:none;stroke:rgba(235,235,235,.72);stroke-width:.8;stroke-dasharray:1800;stroke-dashoffset:1800;animation:landingDraw 5s ease forwards .3s}}
+      .landing-curve path:nth-child(2){{stroke:rgba(220,220,220,.4);animation-delay:1s}}
+      @keyframes landingDraw{{to{{stroke-dashoffset:0}}}}
+      .landing-index{{position:absolute;right:6%;top:47%;display:grid;gap:13px;font:11px 'DM Sans',sans-serif;letter-spacing:2px;color:#999}}
+      .landing-index b{{font-weight:400;color:#f3d72d}}
+      @media(max-width:760px){{.landing-hero{{height:620px}}.landing-hero-copy{{left:6%;width:88%}}.landing-title{{font-size:clamp(62px,13vw,96px)}}.landing-tag{{letter-spacing:3px}}.landing-eyebrow{{font-size:8px;letter-spacing:2px;gap:9px}}.landing-eyebrow:before,.landing-eyebrow:after{{width:25px}}.landing-index{{right:5%}}}}
+    </style></head><body style="margin:0;background:#050505">
+    <main class="landing-hero"><div class="flower"></div>
+      <svg class="landing-curve" viewBox="0 0 1440 900" preserveAspectRatio="none"><path d="M690 -30 C520 110 660 380 970 270 S1260 85 1510 20"/><path d="M-50 610 C180 800 380 560 600 590 S900 690 1050 820"/></svg>
+      <section class="landing-hero-copy"><div class="landing-eyebrow">DIGITAL ART EXHIBITION PLATFORM</div>
+      <div class="landing-title">AFTERIMAGE.</div><div class="landing-tag">YOUR ART. YOUR WORLD.</div>
+      <div class="landing-desc">AN EXHIBITION THAT STAYS WITH YOU.<br>CREATE, EXHIBIT, AND SHARE<br>YOUR OWN ARTISTIC SPACE.</div></section>
+      <div class="landing-index"><b>01　────</b><span>02</span><span>03</span></div>
+    </main></body></html>"""
+    components.html(hero, height=690, scrolling=False)
+
+    st.markdown('<div class="landing-cta-label">ENTER AFTERIMAGE.　/　CHOOSE YOUR SPACE</div>', unsafe_allow_html=True)
+    c1, c2, _ = st.columns([1, 1, 1.15], gap="medium")
+    with c1:
+        if st.button("MY STUDIO　↗", key="landing_my_studio", use_container_width=True):
+            st.session_state.page = "studio"; st.rerun()
+    with c2:
+        if st.button("EXPLORE EXHIBITIONS　↗", key="landing_exhibitions", use_container_width=True):
+            st.session_state.page = "explore"; st.rerun()
+    st.markdown("""<div class="landing-footer"><div>AFTERIMAGE. © 2026. All rights reserved.<br>Designed &amp; Developed by <b style="color:#c9bd78;font-weight:400">suah</b>.</div><div style="text-align:right">BEYOND THE FRAME.<br>LEAVE AN AFTERIMAGE.</div></div>""", unsafe_allow_html=True)
+
+
+def about_page():
+    apply_light_page_style()
+    render_navigation("ABOUT AFTERIMAGE.")
+    st.markdown("""
+    <style>
+      .about-hero{background:#080808;color:#eee;padding:58px 7% 64px;position:relative;overflow:hidden;min-height:330px}
+      .about-hero:after{content:'';position:absolute;width:360px;height:360px;right:-90px;top:-150px;border:1px solid rgba(243,215,45,.22);border-radius:50%;box-shadow:0 0 0 28px rgba(243,215,45,.025),0 0 0 58px rgba(243,215,45,.02)}
+      .about-kicker{font:9px 'DM Sans',sans-serif;letter-spacing:3px;color:#e0c92d}
+      .about-title{font:300 clamp(58px,8vw,108px)/.9 'Barlow Condensed',sans-serif;color:#f3d72d;margin:28px 0 18px;letter-spacing:-1px}
+      .about-lead{font:16px/1.9 'DM Sans',sans-serif;color:#e6e3da;max-width:700px}
+      .about-section{padding:48px 4% 22px;border-bottom:1px solid #e3e1da}
+      .about-section-kicker{font:9px 'DM Sans',sans-serif;letter-spacing:3px;color:#a18c17;margin-bottom:12px}
+      .about-section h2{font:300 clamp(34px,5vw,58px)/1 'Barlow Condensed',sans-serif;color:#222;margin:0 0 18px}
+      .about-body{font:13px/2 'DM Sans',sans-serif;color:#666;max-width:780px}
+      .about-step{background:#f1f0eb;border:1px solid #e1dfd7;padding:20px;min-height:150px}
+      .about-step b{display:block;font:300 30px 'Barlow Condensed',sans-serif;color:#b49d16;margin-bottom:10px}
+      .about-step span{font:11px/1.8 'DM Sans',sans-serif;color:#555}
+      .about-theme{padding:22px;min-height:150px;color:white;display:flex;flex-direction:column;justify-content:space-between}
+      .about-theme strong{font:300 25px 'Barlow Condensed',sans-serif;letter-spacing:1px}
+      .about-theme small{font:9px 'DM Sans',sans-serif;letter-spacing:1.5px;opacity:.8}
+      .about-creator{background:#11110f;color:#eee;padding:38px;display:flex;justify-content:space-between;gap:30px;align-items:center;margin-top:18px}
+      .about-creator .name{font:300 48px 'Barlow Condensed',sans-serif;color:#f3d72d}
+      .about-bottom{padding:28px 4%;font:9px/1.9 'DM Sans',sans-serif;letter-spacing:1.4px;color:#888}
+    </style>
+    <section class="about-hero"><div class="about-kicker">BEYOND THE FRAME　/　THE STORY OF AFTERIMAGE.</div>
+      <div class="about-title">ART DOESN'T<br>END AT THE FRAME.</div>
+      <div class="about-lead">AFTERIMAGE.는 창작물을 모으고, 나만의 감각으로 편집해 하나의 디지털 전시로 완성하는 공간입니다.<br>작품을 기록하고, 전시를 만들고, 당신만의 예술적 세계를 공유해 보세요.</div>
+    </section>
+    <section class="about-section"><div class="about-section-kicker">01　/　OUR STORY</div><h2>A SPACE FOR EVERY CREATOR.</h2>
+      <div class="about-body">작품은 완성되는 순간에 끝나지 않습니다. AFTERIMAGE.는 이미지와 창작물을 단순히 모아두는 것을 넘어, 각자의 시선과 분위기로 연결해 하나의 전시 경험을 만들 수 있도록 기획되었습니다. 누구나 자신만의 전시를 만들고 다른 사람의 작업을 감상할 수 있습니다.</div>
+    </section>
+    <section class="about-section"><div class="about-section-kicker">02　/　HOW TO CREATE</div><h2>MAKE YOUR OWN EXHIBITION.</h2>
+      <div class="about-body">복잡한 편집 도구 없이 몇 단계만으로 나만의 전시를 완성할 수 있습니다.</div>
+    </section>
+    """, unsafe_allow_html=True)
+
+    steps = [("01", "ADD YOUR WORKS", "MY STUDIO에서 작품 이미지와 제목, 작가명, 설명을 등록합니다."),
+             ("02", "CHOOSE A MOOD", "다섯 가지 전시 컨셉 중 작품에 어울리는 분위기를 선택합니다."),
+             ("03", "CURATE", "전시에 포함할 작품을 고르고 전시 제목과 소개를 작성합니다."),
+             ("04", "PREVIEW & SAVE", "미리보기로 확인한 뒤 저장하면 EXPLORE에서 관람할 수 있습니다.")]
+    cols = st.columns(4, gap="small")
+    for col, (num, title, desc) in zip(cols, steps):
+        with col:
+            st.markdown(f'<div class="about-step"><b>{num}</b><strong style="font:10px DM Sans,sans-serif;letter-spacing:1px;color:#333">{title}</strong><br><span>{desc}</span></div>', unsafe_allow_html=True)
+
+    st.markdown("""<section class="about-section"><div class="about-section-kicker">03　/　EXHIBITION MOODS</div><h2>FIVE WAYS TO FRAME YOUR ART.</h2><div class="about-body">작품의 분위기와 이야기에 맞춰 서로 다른 편집 디자인의 전시 공간을 선택할 수 있습니다.</div></section>""", unsafe_allow_html=True)
+    themes = [("WHITE SPACE", "#e9e7df", "#25241f", "MINIMAL / AIRY"),
+              ("BLACK BOX", "#111111", "#f1d72d", "IMMERSIVE / DARK"),
+              ("COLOR FIELD", "#ef4b35", "#fff4d6", "BOLD / COLLAGE"),
+              ("EDITORIAL", "#c9b79b", "#33291f", "PAPER / TYPOGRAPHY"),
+              ("PLAYGROUND", "#7773d9", "#f7f3ff", "PLAYFUL / EXPERIMENTAL")]
+    theme_cols = st.columns(5, gap="small")
+    for col, (name, bg, fg, label) in zip(theme_cols, themes):
+        with col:
+            st.markdown(f'<div class="about-theme" style="background:{bg};color:{fg}"><small>{label}</small><strong>{name}</strong></div>', unsafe_allow_html=True)
+
+    st.markdown("""<section class="about-section"><div class="about-section-kicker">04　/　EXHIBITION EXAMPLES</div><h2>SELECTED WORKS &amp; VISUAL WORLDS.</h2><div class="about-body">MY STUDIO에 등록한 작품 이미지와 저장된 전시가 있다면 이곳에서 실제 예시로 확인할 수 있습니다.</div></section>""", unsafe_allow_html=True)
+    projects = load_projects()
+    visible = [x for x in projects if x.get("image_path") and os.path.exists(x.get("image_path", ""))][:3]
+    exhibitions = load_exhibitions()
+    if visible:
+        cols = st.columns(min(3, len(visible)))
+        for col, project in zip(cols, visible):
+            with col:
+                st.image(project["image_path"], use_container_width=True)
+                st.caption(project.get("name", "UNTITLED"))
+    elif exhibitions:
+        st.caption("저장된 전시가 준비되어 있습니다. EXPLORE에서 실제 전시를 확인해 보세요.")
+    else:
+        st.markdown('<div style="padding:28px;border:1px dashed #ccc;color:#888;font:11px DM Sans,sans-serif;letter-spacing:1px">YOUR FIRST EXHIBITION WILL APPEAR HERE.</div>', unsafe_allow_html=True)
+
+    st.markdown("""<section class="about-section"><div class="about-section-kicker">05　/　MEET THE CREATOR</div><h2>MADE WITH A POINT OF VIEW.</h2><div class="about-creator"><div><div class="about-kicker">DESIGNED &amp; DEVELOPED BY</div><div class="name">suah.</div><div style="font:11px/1.8 'DM Sans',sans-serif;color:#aaa">AFTERIMAGE.의 기획과 디자인, 개발을 진행했습니다.</div></div><div style="font:10px/2 'DM Sans',sans-serif;letter-spacing:1px;color:#aaa;max-width:340px">A DIGITAL ART EXHIBITION PLATFORM<br>COLLECT YOUR WORKS. CURATE YOUR STORY.<br>LEAVE AN AFTERIMAGE.</div></div></section><div class="about-bottom">AFTERIMAGE. © 2026. All rights reserved.　|　Designed &amp; Developed by suah.</div>""", unsafe_allow_html=True)
+    if st.button("EXPLORE EXHIBITIONS　↗", key="about_explore_cta"):
+        st.session_state.page = "explore"; st.rerun()
 
 
 def apply_light_page_style():
@@ -260,9 +309,7 @@ def render_navigation(section):
     st.markdown('<div class="global-nav-wrap">', unsafe_allow_html=True)
     left, middle, right = st.columns([1.7, 3.3, 1])
     with left:
-        if st.button("AFTERIMAGE.", key="nav_logo_" + section, use_container_width=True):
-            st.session_state.page = "landing"
-            st.rerun()
+        st.markdown("<div style=\"font:300 27px 'Barlow Condensed',sans-serif;letter-spacing:2px;color:#b49d16\">AFTERIMAGE.</div>", unsafe_allow_html=True)
     with middle:
         st.markdown(f'<div class="global-nav-label">{html.escape(section.upper())}</div>',
                     unsafe_allow_html=True)
@@ -515,9 +562,7 @@ def new_project_page():
                     "category": category,
                     "desc": desc.strip() or "설명이 등록되지 않았습니다.",
                     "date": "ADDED TODAY",
-                    "image_path": image_path,
-                    "image_data": base64.b64encode(uploaded_image.getvalue()).decode("ascii"),
-                    "image_mime": uploaded_image.type or "image/png"
+                    "image_path": image_path
                 }
                 projects.insert(0, new_item)
                 save_projects(projects)
@@ -540,7 +585,7 @@ def project_detail_page():
     if project is None:
         project = next((p for p in projects if p.get("name") == selected_name), None)
     if project is None:
-        project = st.session_state.get("selected_project_data")
+        project = st.session_state.get("selected_project_snapshot")
 
     if not project:
         st.warning("작품 정보를 찾을 수 없습니다.")
@@ -551,15 +596,13 @@ def project_detail_page():
 
     page_heading("PROJECT ARCHIVE", project.get("name", "PROJECT"),
                  project.get("category", "ARTWORK"))
-    left, right = st.columns([1.2, 1])
+    left, right = st.columns([1.45, 1])
     with left:
         path = project.get("image_path", "")
-        if project.get("image_data"):
-            st.image(base64.b64decode(project["image_data"]), use_container_width=True)
-        elif path and os.path.exists(path):
+        if path and os.path.exists(path):
             st.image(path, use_container_width=True)
         else:
-            st.info("작품 이미지를 찾을 수 없습니다. 기존 프로젝트의 이미지 파일이 사라졌다면 MY STUDIO에서 다시 등록해 주세요.")
+            st.info("작품 이미지를 찾을 수 없습니다.")
     with right:
         st.markdown('<div style="font:10px DM Sans,sans-serif;letter-spacing:2px;color:#a18c17">ABOUT THE WORK</div>', unsafe_allow_html=True)
         st.markdown(f'<div style="font:25px Georgia,serif;margin:12px 0;color:#222">{html.escape(project.get("name",""))}</div>', unsafe_allow_html=True)
@@ -667,8 +710,7 @@ def exhibition_builder_page():
                     "artist": artist.strip() or "ARTIST",
                     "theme": chosen_theme,
                     "project_names": selected_names,
-                    "project_ids": [p.get("id") for p in projects if p.get("name") in selected_names],
-                    "projects_snapshot": [dict(p) for p in projects if p.get("name") in selected_names]
+                    "project_ids": [p.get("id") for p in projects if p.get("name") in selected_names]
                 }
                 st.session_state.page = "exhibition_preview"
                 st.rerun()
@@ -705,19 +747,14 @@ def make_exhibition_html(exhibition, selected, interactive=False):
 
     art_html = []
     for i, project in enumerate(selected):
-        uri = ""
-        if project.get("image_data"):
-            mime = project.get("image_mime", "image/png")
-            uri = f"data:{mime};base64,{project['image_data']}"
-        if not uri:
-            uri = image_as_data_uri(project.get("image_path", ""))
+        uri = image_as_data_uri(project.get("image_path", ""))
         name = html.escape(project.get("name", "UNTITLED"))
         category = html.escape(project.get("category", ""))
         project_id = str(project.get("id", ""))
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            opening = (f'<a class="art-link" href="#" target="_top" '
+            opening = (f'<a class="art-link" href="#work-{html.escape(project_id, quote=True)}" '
                        f'data-work-id="{html.escape(project_id, quote=True)}" aria-label="View {name}">')
             closing = '</a>'
         else:
@@ -736,7 +773,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<a class="exit" href="#" target="_top" data-close-exhibition>CLOSE　×</a>' if interactive else ''
+    exit_link = '<button class="exit" type="button" data-close-exhibition>CLOSE　×</button>' if interactive else ''
 
     page_html = f"""
     <!doctype html><html><head><meta charset="utf-8">
@@ -748,7 +785,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden;position:relative;isolation:isolate}}
       .stage:before{{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.16;background-image:radial-gradient(currentColor .55px,transparent .55px);background-size:17px 17px}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .exit{{display:inline-block;color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
+      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
       .exit:hover{{background:{accent};color:#111;border-color:{accent};opacity:1}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
@@ -888,21 +925,23 @@ def make_exhibition_html(exhibition, selected, interactive=False):
     </main>
     <script>
     (() => {{
-      const parentPage = () => {{
-        try {{ return new URL(document.referrer); }}
-        catch (err) {{ return new URL(window.location.origin + '/'); }}
-      }};
-      const prepareTopLink = (el, key, value) => {{
-        const target = parentPage();
+      const navigateParent = (key, value) => {{
+        const target = new URL(window.parent.location.href);
         target.searchParams.delete('work_id');
         target.searchParams.delete('close_exhibition');
         target.searchParams.set(key, value);
-        el.href = target.toString();
-        el.target = '_top';
+        window.top.location.href = target.toString();
       }};
-      document.querySelectorAll('[data-work-id]').forEach(el => prepareTopLink(el, 'work_id', el.getAttribute('data-work-id')));
+      document.querySelectorAll('[data-work-id]').forEach(el => {{
+        el.addEventListener('click', ev => {{
+          ev.preventDefault(); ev.stopPropagation();
+          navigateParent('work_id', el.getAttribute('data-work-id'));
+        }});
+      }});
       const close = document.querySelector('[data-close-exhibition]');
-      if (close) prepareTopLink(close, 'close_exhibition', '1');
+      if (close) close.addEventListener('click', ev => {{
+        ev.preventDefault(); ev.stopPropagation(); navigateParent('close_exhibition', '1');
+      }});
     }})();
     </script>
     </body></html>
@@ -949,7 +988,7 @@ def exhibition_preview_page():
             saved["id"] = "ex_" + str(len(exhibitions) + 1) + "_" + str(abs(hash(draft["title"])) % 100000)
             saved["created"] = "TODAY"
             saved["projects_snapshot"] = [
-                {key: p.get(key, "") for key in ("id", "name", "category", "desc", "date", "image_path", "image_data", "image_mime")}
+                {key: p.get(key, "") for key in ("id", "name", "category", "desc", "date", "image_path")}
                 for p in selected
             ]
             exhibitions.insert(0, saved)
@@ -1045,17 +1084,15 @@ if clicked_work_id and st.session_state.get("page") in ("exhibition_view", "exhi
         None
     )
     if clicked_project is None:
-        current_exhibition = None
-        if st.session_state.get("page") == "exhibition_view":
-            current_exhibition = next((e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), None)
-        elif st.session_state.get("page") == "exhibition_preview":
-            current_exhibition = st.session_state.get("exhibition_draft")
-        if current_exhibition:
-            clicked_project = next((p for p in current_exhibition.get("projects_snapshot", []) if str(p.get("id", "")) == str(clicked_work_id)), None)
+        current_exhibition = st.session_state.get("exhibition_draft", {}) if st.session_state.page == "exhibition_preview" else next(
+            (e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), {}
+        )
+        clicked_project = next((p for p in current_exhibition.get("projects_snapshot", [])
+                                if str(p.get("id", "")) == str(clicked_work_id)), None)
     if clicked_project:
-        st.session_state.selected_project_data = clicked_project
         st.session_state.selected_project_id = clicked_project.get("id")
         st.session_state.selected_project = clicked_project.get("name", "")
+        st.session_state.selected_project_snapshot = clicked_project
         st.session_state.project_detail_return = st.session_state.page
         st.session_state.page = "project_detail"
     try:
@@ -1069,7 +1106,7 @@ try:
 except Exception:
     close_exhibition = None
 if close_exhibition:
-    st.session_state.page = st.session_state.get("exhibition_return", "studio")
+    st.session_state.page = "studio"
     try:
         del st.query_params["close_exhibition"]
     except Exception:
@@ -1102,6 +1139,8 @@ elif st.session_state.page == "project_detail":
     project_detail_page()
 elif st.session_state.page == "explore":
     explore_page()
+elif st.session_state.page == "about":
+    about_page()
 elif st.session_state.page == "exhibition_builder":
     exhibition_builder_page()
 elif st.session_state.page == "exhibition_preview":
