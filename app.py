@@ -122,7 +122,7 @@ def landing():
         </div>
       </div>
       <div class="about-decoration">A / 01</div>
-      <div class="about-cta-visual">START EXHIBITION <span>↗</span></div>
+      <!-- Navigation controls are rendered by Streamlit below the intro. -->
     </section>
     <style>
       .about{{min-height:860px;background:#11110f;color:#e8e5dc;padding:90px 8% 80px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:center}}
@@ -136,32 +136,29 @@ def landing():
       .about-rule{{height:1px;background:#5d5940;margin:25px 0 17px;width:100%}}
       .about-foot{{font-size:8px;letter-spacing:2px;color:#d9c43b}}
       .about-decoration{{position:absolute;right:8%;bottom:22px;font:11px 'DM Sans',sans-serif;letter-spacing:3px;color:#666}}
-      .about-cta-visual{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;font:10px 'DM Sans',sans-serif;letter-spacing:2px;position:relative;z-index:2}}
-      .about-cta-visual span{{font-size:17px}}
+      .about-cta{{display:inline-flex;align-items:center;gap:42px;padding:16px 20px;border:1px solid #d9c43b;color:#f3d72d;text-decoration:none;font:10px 'DM Sans',sans-serif;letter-spacing:2px;transition:background .3s,color .3s,transform .3s;position:relative;z-index:2}}
+      .about-cta:hover{{background:#f3d72d;color:#080808;transform:translateY(-3px)}}
+      .about-cta span{{font-size:17px}}
       @media(max-width:760px){{.about{{padding:55px 7% 65px}}.about-grid{{grid-template-columns:1fr;gap:28px;padding:42px 0}}.about h2{{font-size:64px}}.about-copy .about-lead{{font-size:14px}}}}
     </style>
+
     </body></html>
     """
     components.html(html, height=1800, scrolling=False)
 
-    # iframe 내부 링크 대신 Streamlit 네이티브 버튼으로 페이지 이동
-    st.markdown("""
-    <style>
-    div[data-testid="stButton"]:has(button[kind="primary"]) {width:100%;margin-top:-4px;}
-    div[data-testid="stButton"]:has(button[kind="primary"]) button {
-        width:100%;min-height:70px !important;border-radius:0 !important;
-        border:1px solid #d9c43b !important;background:#f3d72d !important;
-        color:#080808 !important;text-align:left !important;padding:0 24px !important;
-        font:10px 'DM Sans',sans-serif !important;letter-spacing:2px !important;
-    }
-    div[data-testid="stButton"]:has(button[kind="primary"]) button:hover {
-        background:#ffe84a !important;border-color:#ffe84a !important;transform:translateY(-2px);
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    if st.button("START EXHIBITION     ↗", key="landing_start_exhibition", type="primary", use_container_width=True):
-        st.session_state.page = "exhibition_builder"
-        st.rerun()
+    st.markdown("""<style>
+    div[data-testid="stButton"] button[kind="primary"] {width:100%;min-height:68px!important;border-radius:0!important;background:#f3d72d!important;border:1px solid #f3d72d!important;color:#090909!important;font-size:11px!important;letter-spacing:2px!important}
+    div[data-testid="stButton"] button[kind="secondary"] {width:100%;min-height:68px!important;border-radius:0!important;background:transparent!important;border:1px solid #d9c43b!important;color:#f3d72d!important;font-size:11px!important;letter-spacing:2px!important}
+    </style>""", unsafe_allow_html=True)
+    studio_col, explore_col = st.columns(2, gap="small")
+    with studio_col:
+        if st.button("MY STUDIO  ↗", key="landing_my_studio", type="primary", use_container_width=True):
+            st.session_state.page = "studio"
+            st.rerun()
+    with explore_col:
+        if st.button("EXPLORE EXHIBITIONS  ↗", key="landing_explore", type="secondary", use_container_width=True):
+            st.session_state.page = "explore"
+            st.rerun()
 
 
 
@@ -518,7 +515,9 @@ def new_project_page():
                     "category": category,
                     "desc": desc.strip() or "설명이 등록되지 않았습니다.",
                     "date": "ADDED TODAY",
-                    "image_path": image_path
+                    "image_path": image_path,
+                    "image_data": base64.b64encode(uploaded_image.getvalue()).decode("ascii"),
+                    "image_mime": uploaded_image.type or "image/png"
                 }
                 projects.insert(0, new_item)
                 save_projects(projects)
@@ -540,6 +539,8 @@ def project_detail_page():
     project = next((p for p in projects if selected_id and p.get("id") == selected_id), None)
     if project is None:
         project = next((p for p in projects if p.get("name") == selected_name), None)
+    if project is None:
+        project = st.session_state.get("selected_project_data")
 
     if not project:
         st.warning("작품 정보를 찾을 수 없습니다.")
@@ -553,10 +554,12 @@ def project_detail_page():
     left, right = st.columns([1.2, 1])
     with left:
         path = project.get("image_path", "")
-        if path and os.path.exists(path):
+        if project.get("image_data"):
+            st.image(base64.b64decode(project["image_data"]), use_container_width=True)
+        elif path and os.path.exists(path):
             st.image(path, use_container_width=True)
         else:
-            st.info("작품 이미지를 찾을 수 없습니다.")
+            st.info("작품 이미지를 찾을 수 없습니다. 기존 프로젝트의 이미지 파일이 사라졌다면 MY STUDIO에서 다시 등록해 주세요.")
     with right:
         st.markdown('<div style="font:10px DM Sans,sans-serif;letter-spacing:2px;color:#a18c17">ABOUT THE WORK</div>', unsafe_allow_html=True)
         st.markdown(f'<div style="font:25px Georgia,serif;margin:12px 0;color:#222">{html.escape(project.get("name",""))}</div>', unsafe_allow_html=True)
@@ -664,7 +667,8 @@ def exhibition_builder_page():
                     "artist": artist.strip() or "ARTIST",
                     "theme": chosen_theme,
                     "project_names": selected_names,
-                    "project_ids": [p.get("id") for p in projects if p.get("name") in selected_names]
+                    "project_ids": [p.get("id") for p in projects if p.get("name") in selected_names],
+                    "projects_snapshot": [dict(p) for p in projects if p.get("name") in selected_names]
                 }
                 st.session_state.page = "exhibition_preview"
                 st.rerun()
@@ -701,14 +705,19 @@ def make_exhibition_html(exhibition, selected, interactive=False):
 
     art_html = []
     for i, project in enumerate(selected):
-        uri = image_as_data_uri(project.get("image_path", ""))
+        uri = ""
+        if project.get("image_data"):
+            mime = project.get("image_mime", "image/png")
+            uri = f"data:{mime};base64,{project['image_data']}"
+        if not uri:
+            uri = image_as_data_uri(project.get("image_path", ""))
         name = html.escape(project.get("name", "UNTITLED"))
         category = html.escape(project.get("category", ""))
         project_id = str(project.get("id", ""))
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            opening = (f'<a class="art-link" href="#work-{html.escape(project_id, quote=True)}" '
+            opening = (f'<a class="art-link" href="#" target="_top" '
                        f'data-work-id="{html.escape(project_id, quote=True)}" aria-label="View {name}">')
             closing = '</a>'
         else:
@@ -727,7 +736,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<button class="exit" type="button" data-close-exhibition>CLOSE　×</button>' if interactive else ''
+    exit_link = '<a class="exit" href="#" target="_top" data-close-exhibition>CLOSE　×</a>' if interactive else ''
 
     page_html = f"""
     <!doctype html><html><head><meta charset="utf-8">
@@ -739,7 +748,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .stage{{width:100%;height:100vh;min-height:620px;padding:18px clamp(14px,3vw,42px) 16px;display:flex;flex-direction:column;overflow:hidden;position:relative;isolation:isolate}}
       .stage:before{{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.16;background-image:radial-gradient(currentColor .55px,transparent .55px);background-size:17px 17px}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
+      .exit{{display:inline-block;color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
       .exit:hover{{background:{accent};color:#111;border-color:{accent};opacity:1}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
@@ -879,28 +888,21 @@ def make_exhibition_html(exhibition, selected, interactive=False):
     </main>
     <script>
     (() => {{
-      const navigateParent = (key, value) => {{
-        try {{
-          const target = new URL(window.parent.location.href);
-          target.searchParams.delete('work_id');
-          target.searchParams.delete('close_exhibition');
-          target.searchParams.set(key, value);
-          window.parent.location.assign(target.toString());
-        }} catch (err) {{
-          const base = window.location.href.split('?')[0];
-          window.top.location.href = base + '?' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
-        }}
+      const parentPage = () => {{
+        try {{ return new URL(document.referrer); }}
+        catch (err) {{ return new URL(window.location.origin + '/'); }}
       }};
-      document.querySelectorAll('[data-work-id]').forEach(el => {{
-        el.addEventListener('click', ev => {{
-          ev.preventDefault(); ev.stopPropagation();
-          navigateParent('work_id', el.getAttribute('data-work-id'));
-        }});
-      }});
+      const prepareTopLink = (el, key, value) => {{
+        const target = parentPage();
+        target.searchParams.delete('work_id');
+        target.searchParams.delete('close_exhibition');
+        target.searchParams.set(key, value);
+        el.href = target.toString();
+        el.target = '_top';
+      }};
+      document.querySelectorAll('[data-work-id]').forEach(el => prepareTopLink(el, 'work_id', el.getAttribute('data-work-id')));
       const close = document.querySelector('[data-close-exhibition]');
-      if (close) close.addEventListener('click', ev => {{
-        ev.preventDefault(); ev.stopPropagation(); navigateParent('close_exhibition', '1');
-      }});
+      if (close) prepareTopLink(close, 'close_exhibition', '1');
     }})();
     </script>
     </body></html>
@@ -947,7 +949,7 @@ def exhibition_preview_page():
             saved["id"] = "ex_" + str(len(exhibitions) + 1) + "_" + str(abs(hash(draft["title"])) % 100000)
             saved["created"] = "TODAY"
             saved["projects_snapshot"] = [
-                {key: p.get(key, "") for key in ("id", "name", "category", "desc", "date", "image_path")}
+                {key: p.get(key, "") for key in ("id", "name", "category", "desc", "date", "image_path", "image_data", "image_mime")}
                 for p in selected
             ]
             exhibitions.insert(0, saved)
@@ -1042,7 +1044,16 @@ if clicked_work_id and st.session_state.get("page") in ("exhibition_view", "exhi
         (p for p in load_projects() if str(p.get("id", "")) == str(clicked_work_id)),
         None
     )
+    if clicked_project is None:
+        current_exhibition = None
+        if st.session_state.get("page") == "exhibition_view":
+            current_exhibition = next((e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), None)
+        elif st.session_state.get("page") == "exhibition_preview":
+            current_exhibition = st.session_state.get("exhibition_draft")
+        if current_exhibition:
+            clicked_project = next((p for p in current_exhibition.get("projects_snapshot", []) if str(p.get("id", "")) == str(clicked_work_id)), None)
     if clicked_project:
+        st.session_state.selected_project_data = clicked_project
         st.session_state.selected_project_id = clicked_project.get("id")
         st.session_state.selected_project = clicked_project.get("name", "")
         st.session_state.project_detail_return = st.session_state.page
