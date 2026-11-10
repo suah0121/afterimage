@@ -996,7 +996,20 @@ def exhibition_preview_page():
     selected = [p for p in load_projects() if p.get("name") in draft.get("project_names", [])]
     if not selected:
         selected = draft.get("projects_snapshot", [])
-    page_html = make_exhibition_html(draft, selected, interactive=True)
+    # Native Streamlit controls handle navigation outside the HTML iframe.
+    st.markdown("### OPEN A WORK")
+    if selected:
+        work_cols = st.columns(min(3, len(selected)))
+        for idx, project in enumerate(selected):
+            with work_cols[idx % len(work_cols)]:
+                if st.button(f"VIEW · {project.get('name', 'UNTITLED')}", key=f"preview_native_work_{project.get('id', idx)}", use_container_width=True):
+                    st.session_state.selected_project_id = project.get("id")
+                    st.session_state.selected_project = project.get("name", "")
+                    st.session_state.selected_project_snapshot = project
+                    st.session_state.project_detail_return = "exhibition_preview"
+                    st.session_state.page = "project_detail"
+                    st.rerun()
+    page_html = make_exhibition_html(draft, selected, interactive=False)
     components.html(page_html, height=980, scrolling=True)
 
     st.markdown("### SELECTED PROJECTS")
@@ -1052,6 +1065,25 @@ def exhibition_view_page():
         return
 
     selected = get_exhibition_projects(exhibition)
+    # These are real Streamlit buttons (not iframe controls), so navigation is reliable.
+    control_cols = st.columns([1, 4])
+    with control_cols[0]:
+        if st.button("CLOSE  ×", key="native_close_exhibition", use_container_width=True):
+            st.session_state.page = "studio"
+            st.rerun()
+    with control_cols[1]:
+        st.caption("OPEN A WORK")
+        if selected:
+            work_cols = st.columns(min(4, len(selected)))
+            for idx, project in enumerate(selected):
+                with work_cols[idx % len(work_cols)]:
+                    if st.button(f"{idx+1:02d} · {project.get('name', 'UNTITLED')}", key=f"view_native_work_{project.get('id', idx)}", use_container_width=True):
+                        st.session_state.selected_project_id = project.get("id")
+                        st.session_state.selected_project = project.get("name", "")
+                        st.session_state.selected_project_snapshot = project
+                        st.session_state.project_detail_return = "exhibition_view"
+                        st.session_state.page = "project_detail"
+                        st.rerun()
     theme = THEMES.get(exhibition.get("theme", "WHITE SPACE"), THEMES["WHITE SPACE"])
     # Match the Streamlit canvas to the exhibition before mounting the iframe;
     # this removes the black intermediate frame during reruns.
@@ -1060,11 +1092,11 @@ def exhibition_view_page():
       html, body, [data-testid=\"stAppViewContainer\"] {{background:{theme['bg']} !important;}}
       [data-testid=\"stHeader\"], [data-testid=\"stToolbar\"], [data-testid=\"stSidebar\"] {{display:none !important;}}
       .block-container {{padding:0 !important;max-width:none !important;margin:0 !important;}}
-      div[data-testid=\"stIFrame\"] {{position:fixed !important;inset:0 !important;width:100vw !important;height:100vh !important;z-index:999999 !important;margin:0 !important;padding:0 !important;background:{theme['bg']} !important;}}
-      div[data-testid=\"stIFrame\"] iframe {{width:100vw !important;height:100vh !important;border:0 !important;background:{theme['bg']} !important;}}
+      div[data-testid=\"stIFrame\"] {{width:100% !important;margin:0 !important;padding:0 !important;background:{theme['bg']} !important;}}
+      div[data-testid=\"stIFrame\"] iframe {{width:100% !important;border:0 !important;background:{theme['bg']} !important;}}
     </style>
     """, unsafe_allow_html=True)
-    page_html = make_exhibition_html(exhibition, selected, interactive=True)
+    page_html = make_exhibition_html(exhibition, selected, interactive=False)
     components.html(page_html, height=1000, scrolling=False)
 
 
