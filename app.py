@@ -579,6 +579,14 @@ def new_project_page():
 
 def project_detail_page():
     apply_light_page_style()
+    detail_theme = THEMES.get(st.session_state.get("selected_exhibition_theme", "WHITE SPACE"), THEMES["WHITE SPACE"])
+    st.markdown(f"""<style>
+      html, body, [data-testid=\"stAppViewContainer\"], .block-container {{background:{detail_theme['bg']} !important;color:{detail_theme['fg']} !important;}}
+      [data-testid=\"stHeader\"] {{background:{detail_theme['bg']} !important;}}
+      .block-container {{padding:2rem 4vw 3rem !important;}}
+      .stMarkdown, .stMarkdown p, .stCaption {{color:{detail_theme['fg']} !important;}}
+      .stButton>button {{border-color:{detail_theme['accent']} !important;color:{detail_theme['fg']} !important;}}
+    </style>""", unsafe_allow_html=True)
     render_navigation("PROJECT ARCHIVE / DETAIL")
     projects = load_projects()
     selected_id = st.session_state.get("selected_project_id")
@@ -798,8 +806,9 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       .decor-label{{position:absolute;right:3.5%;bottom:8%;font:7px Arial,sans-serif;letter-spacing:2px;opacity:.28;transform:rotate(-90deg);transform-origin:right bottom}}
       .heading,.gallery,.top,.foot{{position:relative;z-index:2}}
       .top{{height:34px;flex:0 0 34px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid currentColor;font-size:9px;letter-spacing:2px;opacity:.78}}
-      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:7px 10px;font-size:8px;letter-spacing:1px;opacity:.85;background:transparent;cursor:pointer;font-family:inherit;position:relative;z-index:50;pointer-events:auto}}
+      .exit{{color:inherit;text-decoration:none;border:1px solid currentColor;padding:4px 7px;font-size:7px;letter-spacing:1px;opacity:.72;background:transparent;cursor:pointer;font-family:inherit;position:absolute;right:0;top:0;z-index:50;pointer-events:auto;line-height:1.2}}
       .exit:hover{{background:{accent};color:#111;border-color:{accent};opacity:1}}
+      .top{{position:relative;padding-right:58px}}
       .heading{{display:flex;justify-content:space-between;align-items:end;gap:20px;padding:17px 0 14px;position:relative;z-index:2}}
       .eyebrow{{font-size:9px;letter-spacing:2.5px;color:{accent};margin-bottom:7px}}
       h1{{font:normal clamp(26px,4vw,52px)/.98 {font};letter-spacing:-1px;margin:0;overflow-wrap:anywhere}}
@@ -996,20 +1005,7 @@ def exhibition_preview_page():
     selected = [p for p in load_projects() if p.get("name") in draft.get("project_names", [])]
     if not selected:
         selected = draft.get("projects_snapshot", [])
-    # Native Streamlit controls handle navigation outside the HTML iframe.
-    st.markdown("### OPEN A WORK")
-    if selected:
-        work_cols = st.columns(min(3, len(selected)))
-        for idx, project in enumerate(selected):
-            with work_cols[idx % len(work_cols)]:
-                if st.button(f"VIEW · {project.get('name', 'UNTITLED')}", key=f"preview_native_work_{project.get('id', idx)}", use_container_width=True):
-                    st.session_state.selected_project_id = project.get("id")
-                    st.session_state.selected_project = project.get("name", "")
-                    st.session_state.selected_project_snapshot = project
-                    st.session_state.project_detail_return = "exhibition_preview"
-                    st.session_state.page = "project_detail"
-                    st.rerun()
-    page_html = make_exhibition_html(draft, selected, interactive=False)
+    page_html = make_exhibition_html(draft, selected, interactive=True)
     components.html(page_html, height=980, scrolling=True)
 
     st.markdown("### SELECTED PROJECTS")
@@ -1065,25 +1061,6 @@ def exhibition_view_page():
         return
 
     selected = get_exhibition_projects(exhibition)
-    # These are real Streamlit buttons (not iframe controls), so navigation is reliable.
-    control_cols = st.columns([1, 4])
-    with control_cols[0]:
-        if st.button("CLOSE  ×", key="native_close_exhibition", use_container_width=True):
-            st.session_state.page = "studio"
-            st.rerun()
-    with control_cols[1]:
-        st.caption("OPEN A WORK")
-        if selected:
-            work_cols = st.columns(min(4, len(selected)))
-            for idx, project in enumerate(selected):
-                with work_cols[idx % len(work_cols)]:
-                    if st.button(f"{idx+1:02d} · {project.get('name', 'UNTITLED')}", key=f"view_native_work_{project.get('id', idx)}", use_container_width=True):
-                        st.session_state.selected_project_id = project.get("id")
-                        st.session_state.selected_project = project.get("name", "")
-                        st.session_state.selected_project_snapshot = project
-                        st.session_state.project_detail_return = "exhibition_view"
-                        st.session_state.page = "project_detail"
-                        st.rerun()
     theme = THEMES.get(exhibition.get("theme", "WHITE SPACE"), THEMES["WHITE SPACE"])
     # Match the Streamlit canvas to the exhibition before mounting the iframe;
     # this removes the black intermediate frame during reruns.
@@ -1096,7 +1073,7 @@ def exhibition_view_page():
       div[data-testid=\"stIFrame\"] iframe {{width:100% !important;border:0 !important;background:{theme['bg']} !important;}}
     </style>
     """, unsafe_allow_html=True)
-    page_html = make_exhibition_html(exhibition, selected, interactive=False)
+    page_html = make_exhibition_html(exhibition, selected, interactive=True)
     components.html(page_html, height=1000, scrolling=False)
 
 
@@ -1161,6 +1138,11 @@ if clicked_work_id and st.session_state.get("page") in ("exhibition_view", "exhi
         st.session_state.selected_project_id = clicked_project.get("id")
         st.session_state.selected_project = clicked_project.get("name", "")
         st.session_state.selected_project_snapshot = clicked_project
+        if st.session_state.page == "exhibition_preview":
+            st.session_state.selected_exhibition_theme = st.session_state.get("exhibition_draft", {}).get("theme", "WHITE SPACE")
+        else:
+            active_ex = next((e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), {})
+            st.session_state.selected_exhibition_theme = active_ex.get("theme", "WHITE SPACE")
         st.session_state.project_detail_return = st.session_state.page
         st.session_state.page = "project_detail"
     try:
