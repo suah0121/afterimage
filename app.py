@@ -774,8 +774,15 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            # Native top-level navigation avoids blocked iframe parent-script access.
-            opening = (f'<a class="art-link" href="?work_id={quote(project_id, safe="")}" '
+            # Handle navigation directly on the user-clicked anchor. This avoids relying
+            # on delegated listeners inside Streamlit's sandboxed components.html iframe.
+            work_id_js = html.escape(json.dumps(project_id), quote=True)
+            click_js = ("event.preventDefault();"
+                        "var u=new URL(window.parent.location.href);"
+                        "u.searchParams.delete('close_exhibition');"
+                        f"u.searchParams.set('work_id',{work_id_js});"
+                        "window.parent.location.href=u.toString();return false;")
+            opening = (f'<a class="art-link" href="#" onclick="{click_js}" '
                        f'aria-label="View {name}">')
             closing = '</a>'
         else:
@@ -794,7 +801,13 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<a class="exit" href="?close_exhibition=1" aria-label="Close exhibition">×</a>' if interactive else ''
+    exit_click_js = ("event.preventDefault();"
+                     "var u=new URL(window.parent.location.href);"
+                     "u.searchParams.delete('work_id');"
+                     "u.searchParams.set('close_exhibition','1');"
+                     "window.parent.location.href=u.toString();return false;")
+    exit_link = (f'<a class="exit" href="#" onclick="{exit_click_js}" '
+                 f'aria-label="Close exhibition">×</a>') if interactive else ''
     theme_decor = f'<div class="theme-decor {layout_class}-decor" aria-hidden="true"><i class="decor-orb orb-one"></i><i class="decor-orb orb-two"></i><i class="decor-line line-one"></i><i class="decor-line line-two"></i><i class="decor-label">AFTERIMAGE　/　{html.escape(theme_name)}</i></div>'
 
     page_html = f"""
@@ -981,28 +994,6 @@ def make_exhibition_html(exhibition, selected, interactive=False):
     return page_html
 
 
-def render_exhibition_in_parent(page_html):
-    """Render exhibition markup in Streamlit's page DOM, not an isolated iframe.
-
-    Artwork and close links must navigate the actual Streamlit page so the
-    query-parameter router below can receive their events. components.html()
-    isolates those links in an iframe, which was the cause of both controls
-    failing to reach the app router.
-    """
-    style_match = re.search(r"<style>(.*?)</style>", page_html, flags=re.DOTALL | re.IGNORECASE)
-    body_match = re.search(r"<body[^>]*>(.*?)</body>", page_html, flags=re.DOTALL | re.IGNORECASE)
-
-    if style_match:
-        st.markdown("<style>" + style_match.group(1) + "</style>", unsafe_allow_html=True)
-
-    if body_match:
-        body_content = body_match.group(1)
-    else:
-        body_content = page_html
-
-    st.markdown(body_content, unsafe_allow_html=True)
-
-
 def exhibition_preview_page():
     apply_light_page_style()
     render_navigation("EXHIBITION BUILDER / PREVIEW")
@@ -1016,7 +1007,7 @@ def exhibition_preview_page():
 
     selected = get_exhibition_projects(draft)
     page_html = make_exhibition_html(draft, selected, interactive=True)
-    render_exhibition_in_parent(page_html)
+    components.html(page_html, height=980, scrolling=True)
 
     st.markdown("### SELECTED PROJECTS")
     detail_cols = st.columns(min(3, max(1, len(selected))))
@@ -1084,7 +1075,7 @@ def exhibition_view_page():
     </style>
     """, unsafe_allow_html=True)
     page_html = make_exhibition_html(exhibition, selected, interactive=True)
-    render_exhibition_in_parent(page_html)
+    components.html(page_html, height=1000, scrolling=False)
 
 
 def explore_page():
@@ -1175,7 +1166,13 @@ try:
 except Exception:
     close_exhibition = None
 if close_exhibition:
-    st.session_state.page = "studio"
+    if st.session_state.get("page") == "exhibition_preview":
+        return_page = "exhibition_builder"
+    else:
+        return_page = st.session_state.get("exhibition_return", "studio")
+    if return_page not in ("studio", "explore", "exhibition_builder"):
+        return_page = "studio"
+    st.session_state.page = return_page
     try:
         del st.query_params["close_exhibition"]
     except Exception:
@@ -1219,4 +1216,3 @@ elif st.session_state.page == "exhibition_view":
 else:
     st.session_state.page = "landing"
     st.rerun()
-
