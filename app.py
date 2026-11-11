@@ -4,6 +4,7 @@ import os
 import html
 import re
 import base64
+from urllib.parse import quote
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="AFTERIMAGE.", page_icon="✳", layout="wide")
@@ -488,6 +489,8 @@ def studio_page():
                     if st.button("OPEN PROJECT  ↗", key="open_" + str(project.get("id", project.get("name"))), use_container_width=True):
                         st.session_state.selected_project_id = project.get("id")
                         st.session_state.selected_project = project.get("name")
+                        st.session_state.selected_project_snapshot = project
+                        st.session_state.selected_exhibition_theme = "WHITE SPACE"
                         st.session_state.project_detail_return = "studio"
                         st.session_state.page = "project_detail"
                         st.rerun()
@@ -591,11 +594,13 @@ def project_detail_page():
     projects = load_projects()
     selected_id = st.session_state.get("selected_project_id")
     selected_name = st.session_state.get("selected_project", "")
-    project = next((p for p in projects if selected_id and p.get("id") == selected_id), None)
+    project = next((p for p in projects if selected_id and str(p.get("id", "")) == str(selected_id)), None)
+    if project is None:
+        snapshot = st.session_state.get("selected_project_snapshot")
+        if snapshot and str(snapshot.get("id", "")) == str(selected_id or ""):
+            project = snapshot
     if project is None:
         project = next((p for p in projects if p.get("name") == selected_name), None)
-    if project is None:
-        project = st.session_state.get("selected_project_snapshot")
 
     if not project:
         st.warning("작품 정보를 찾을 수 없습니다.")
@@ -734,12 +739,15 @@ def exhibition_builder_page():
 
 def get_exhibition_projects(exhibition):
     projects = load_projects()
-    ids = exhibition.get("project_ids", [])
-    names = exhibition.get("project_names", [])
+    ids = {str(value) for value in exhibition.get("project_ids", []) if value is not None}
+    names = set(exhibition.get("project_names", []))
     selected = []
+
     for project in projects:
-        if (ids and project.get("id") in ids) or (not ids and project.get("name") in names):
+        project_id = str(project.get("id", ""))
+        if (ids and project_id in ids) or (not ids and project.get("name") in names):
             selected.append(project)
+
     if selected:
         return selected
 
@@ -767,7 +775,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
             # Native top-level navigation avoids blocked iframe parent-script access.
-            opening = (f'<a class="art-link" href="?work_id={html.escape(project_id, quote=True)}" '
+            opening = (f'<a class="art-link" href="?work_id={quote(project_id, safe="")}" '
                        f'target="_top" aria-label="View {name}">')
             closing = '</a>'
         else:
@@ -984,11 +992,9 @@ def exhibition_preview_page():
             st.rerun()
         return
 
-    selected = [p for p in load_projects() if p.get("name") in draft.get("project_names", [])]
-    if not selected:
-        selected = draft.get("projects_snapshot", [])
+    selected = get_exhibition_projects(draft)
     page_html = make_exhibition_html(draft, selected, interactive=True)
-    st.html(page_html, unsafe_allow_javascript=True)
+    components.html(page_html, height=980, scrolling=True)
 
     st.markdown("### SELECTED PROJECTS")
     detail_cols = st.columns(min(3, max(1, len(selected))))
@@ -1056,7 +1062,7 @@ def exhibition_view_page():
     </style>
     """, unsafe_allow_html=True)
     page_html = make_exhibition_html(exhibition, selected, interactive=True)
-    st.html(page_html, unsafe_allow_javascript=True)
+    components.html(page_html, height=1000, scrolling=False)
 
 
 def explore_page():
@@ -1098,40 +1104,49 @@ def explore_page():
 # ------------------------------------------------------------
 # COLLAGE ARTWORK CLICK -> EXISTING PROJECT DETAIL ROUTE
 # ------------------------------------------------------------
-# Artwork links target the top-level Streamlit URL with ?work_id=...
-# Convert that URL into session state here.
+# The work_id query parameter is a one-time navigation signal.
+# Always consume it immediately so an old click cannot open a detail page
+# later when the user enters a different exhibition.
 try:
     clicked_work_id = st.query_params.get("work_id")
 except Exception:
     clicked_work_id = None
 
-if clicked_work_id and st.session_state.get("page") in ("exhibition_view", "exhibition_preview"):
-    clicked_project = next(
-        (p for p in load_projects() if str(p.get("id", "")) == str(clicked_work_id)),
-        None
-    )
-    if clicked_project is None:
-        current_exhibition = st.session_state.get("exhibition_draft", {}) if st.session_state.page == "exhibition_preview" else next(
-            (e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), {}
-        )
-        clicked_project = next((p for p in current_exhibition.get("projects_snapshot", [])
-                                if str(p.get("id", "")) == str(clicked_work_id)), None)
-    if clicked_project:
-        st.session_state.selected_project_id = clicked_project.get("id")
-        st.session_state.selected_project = clicked_project.get("name", "")
-        st.session_state.selected_project_snapshot = clicked_project
-        if st.session_state.page == "exhibition_preview":
-            st.session_state.selected_exhibition_theme = st.session_state.get("exhibition_draft", {}).get("theme", "WHITE SPACE")
-        else:
-            active_ex = next((e for e in load_exhibitions() if e.get("id") == st.session_state.get("selected_exhibition_id")), {})
-            st.session_state.selected_exhibition_theme = active_ex.get("theme", "WHITE SPACE")
-        st.session_state.project_detail_return = st.session_state.page
-        st.session_state.page = "project_detail"
+if clicked_work_id:
     try:
         del st.query_params["work_id"]
     except Exception:
         pass
-    st.rerun()
+
+    current_page = st.session_state.get("page")
+    if current_page in ("exhibition_view", "exhibition_preview"):
+        if current_page == "exhibition_preview":
+            current_exhibition = st.session_state.get("exhibition_draft", {}) or {}
+        else:
+            current_exhibition = next(
+                (e for e in load_exhibitions()
+                 if str(e.get("id", "")) == str(st.session_state.get("selected_exhibition_id", ""))),
+                {}
+            )
+
+        # Only allow a click to open a work that belongs to the exhibition
+        # currently being viewed. This prevents stale or unrelated IDs routing
+        # to an arbitrary project in the archive.
+        exhibition_projects = get_exhibition_projects(current_exhibition) if current_exhibition else []
+        clicked_project = next(
+            (p for p in exhibition_projects
+             if str(p.get("id", "")) == str(clicked_work_id)),
+            None
+        )
+
+        if clicked_project:
+            st.session_state.selected_project_id = clicked_project.get("id")
+            st.session_state.selected_project = clicked_project.get("name", "")
+            st.session_state.selected_project_snapshot = clicked_project
+            st.session_state.selected_exhibition_theme = current_exhibition.get("theme", "WHITE SPACE")
+            st.session_state.project_detail_return = current_page
+            st.session_state.page = "project_detail"
+            st.rerun()
 
 try:
     close_exhibition = st.query_params.get("close_exhibition")
