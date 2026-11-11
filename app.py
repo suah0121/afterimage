@@ -775,7 +775,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
             # Native top-level navigation avoids blocked iframe parent-script access.
-            opening = (f'<a class="art-link" href="?work_id={quote(project_id, safe="")}" '
+            opening = (f'<a class="art-link" target="_top" href="?work_id={quote(project_id, safe="")}" '
                        f'aria-label="View {name}">')
             closing = '</a>'
         else:
@@ -794,7 +794,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<a class="exit" href="?close_exhibition=1" aria-label="Close exhibition">×</a>' if interactive else ''
+    exit_link = '<a class="exit" target="_top" href="?close_exhibition=1" aria-label="Close exhibition">×</a>' if interactive else ''
     theme_decor = f'<div class="theme-decor {layout_class}-decor" aria-hidden="true"><i class="decor-orb orb-one"></i><i class="decor-orb orb-two"></i><i class="decor-line line-one"></i><i class="decor-line line-two"></i><i class="decor-label">AFTERIMAGE　/　{html.escape(theme_name)}</i></div>'
 
     page_html = f"""
@@ -982,25 +982,14 @@ def make_exhibition_html(exhibition, selected, interactive=False):
 
 
 def render_exhibition_in_parent(page_html):
-    """Render exhibition markup in Streamlit's page DOM, not an isolated iframe.
+    """Render the exhibition in an iframe; its artwork/close links target _top.
 
-    Artwork and close links must navigate the actual Streamlit page so the
-    query-parameter router below can receive their events. components.html()
-    isolates those links in an iframe, which was the cause of both controls
-    failing to reach the app router.
+    Streamlit's st.markdown rewrites ordinary HTML links to open in a new tab.
+    Keeping the exhibition in components.html and explicitly targeting _top
+    makes those two links navigate the existing app tab, where query_params
+    are consumed by the router below.
     """
-    style_match = re.search(r"<style>(.*?)</style>", page_html, flags=re.DOTALL | re.IGNORECASE)
-    body_match = re.search(r"<body[^>]*>(.*?)</body>", page_html, flags=re.DOTALL | re.IGNORECASE)
-
-    if style_match:
-        st.markdown("<style>" + style_match.group(1) + "</style>", unsafe_allow_html=True)
-
-    if body_match:
-        body_content = body_match.group(1)
-    else:
-        body_content = page_html
-
-    st.markdown(body_content, unsafe_allow_html=True)
+    components.html(page_html, height=900, scrolling=True)
 
 
 def exhibition_preview_page():
@@ -1072,8 +1061,7 @@ def exhibition_view_page():
 
     selected = get_exhibition_projects(exhibition)
     theme = THEMES.get(exhibition.get("theme", "WHITE SPACE"), THEMES["WHITE SPACE"])
-    # Match the Streamlit canvas to the exhibition before mounting the iframe;
-    # this removes the black intermediate frame during reruns.
+    # Match the Streamlit canvas to the exhibition iframe background.
     st.markdown(f"""
     <style>
       html, body, [data-testid=\"stAppViewContainer\"] {{background:{theme['bg']} !important;}}
