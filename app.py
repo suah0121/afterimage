@@ -988,7 +988,7 @@ def exhibition_preview_page():
     if not selected:
         selected = draft.get("projects_snapshot", [])
     page_html = make_exhibition_html(draft, selected, interactive=True)
-    components.html(page_html, height=980, scrolling=True)
+    st.html(page_html, unsafe_allow_javascript=True)
 
     st.markdown("### SELECTED PROJECTS")
     detail_cols = st.columns(min(3, max(1, len(selected))))
@@ -1056,7 +1056,7 @@ def exhibition_view_page():
     </style>
     """, unsafe_allow_html=True)
     page_html = make_exhibition_html(exhibition, selected, interactive=True)
-    components.html(page_html, height=1000, scrolling=False)
+    st.html(page_html, unsafe_allow_javascript=True)
 
 
 def explore_page():
