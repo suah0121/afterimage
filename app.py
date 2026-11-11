@@ -774,9 +774,9 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         media = (f'<img src="{uri}" alt="{name}">' if uri else
                  f'<div class="placeholder"><span>✳</span><small>{name}</small></div>')
         if interactive and project_id:
-            # Native top-level navigation avoids blocked iframe parent-script access.
-            opening = (f'<a class="art-link" href="?work_id={quote(project_id, safe="")}" '
-                       f'target="_top" aria-label="View {name}">')
+            # Navigate the Streamlit app itself, not the embedded components.html iframe.
+            opening = (f'<a class="art-link" href="#" data-work-id="{html.escape(project_id, quote=True)}" '
+                       f'aria-label="View {name}">')
             closing = '</a>'
         else:
             opening, closing = '<div class="art-link">', '</div>'
@@ -794,7 +794,7 @@ def make_exhibition_html(exhibition, selected, interactive=False):
         "white": "white-space", "black": "black-box", "color": "color-field",
         "editorial": "editorial", "play": "playground"
     }.get(mode, "white-space")
-    exit_link = '<a class="exit" href="?close_exhibition=1" target="_top" aria-label="Close exhibition">×</a>' if interactive else ''
+    exit_link = '<a class="exit" href="#" data-close-exhibition="1" aria-label="Close exhibition">×</a>' if interactive else ''
     theme_decor = f'<div class="theme-decor {layout_class}-decor" aria-hidden="true"><i class="decor-orb orb-one"></i><i class="decor-orb orb-two"></i><i class="decor-line line-one"></i><i class="decor-line line-two"></i><i class="decor-label">AFTERIMAGE　/　{html.escape(theme_name)}</i></div>'
 
     page_html = f"""
@@ -976,6 +976,38 @@ def make_exhibition_html(exhibition, selected, interactive=False):
       </section>
       <footer class="foot"><span>SELECTED WORKS　/　{count:02d}</span><span>CLICK AN ARTWORK TO EXPLORE</span></footer>
     </main>
+    <script>
+    (function () {{
+      function navigateToApp(parameter, value) {{
+        var appUrl;
+        try {{
+          // components.html runs inside an iframe; its own URL is not the Streamlit app URL.
+          appUrl = new URL(document.referrer || window.parent.location.href);
+        }} catch (error) {{
+          appUrl = new URL(window.location.href);
+        }}
+        appUrl.searchParams.delete("work_id");
+        appUrl.searchParams.delete("close_exhibition");
+        appUrl.searchParams.set(parameter, value);
+        window.top.location.assign(appUrl.toString());
+      }}
+
+      document.addEventListener("click", function (event) {{
+        var workLink = event.target.closest("[data-work-id]");
+        if (workLink) {{
+          event.preventDefault();
+          navigateToApp("work_id", workLink.getAttribute("data-work-id"));
+          return;
+        }}
+
+        var closeLink = event.target.closest("[data-close-exhibition]");
+        if (closeLink) {{
+          event.preventDefault();
+          navigateToApp("close_exhibition", "1");
+        }}
+      }});
+    }})();
+    </script>
     </body></html>
     """
     return page_html
@@ -1153,7 +1185,13 @@ try:
 except Exception:
     close_exhibition = None
 if close_exhibition:
-    st.session_state.page = "studio"
+    if st.session_state.get("page") == "exhibition_preview":
+        return_page = "exhibition_builder"
+    else:
+        return_page = st.session_state.get("exhibition_return", "studio")
+    if return_page not in ("studio", "explore", "exhibition_builder"):
+        return_page = "studio"
+    st.session_state.page = return_page
     try:
         del st.query_params["close_exhibition"]
     except Exception:
