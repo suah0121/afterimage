@@ -57,9 +57,9 @@ def landing():
         min-height:46px!important;font:10px 'DM Sans',sans-serif!important;letter-spacing:2px!important;transition:all .25s ease!important}
       .st-key-landing_my_studio button:hover,.st-key-landing_exhibitions button:hover{background:#f3d72d!important;
         color:#080808!important;border-color:#f3d72d!important;transform:translateY(-2px)}
-      .landing-hero{height:690px;position:relative;overflow:hidden;background:#050505;color:#eee}
+      .landing-hero{height:820px;position:relative;overflow:hidden;background:#050505;color:#eee}
       .landing-hero .flower{position:absolute;inset:0;background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 58%,rgba(5,5,5,.08) 100%),url('__FLOWER__');
-        background-size:cover;background-position:center 48%;opacity:.92;animation:landingPetal 16s ease-in-out infinite alternate}
+        background-size:100% 100%, auto 100%;background-position:center, right center;background-repeat:no-repeat;opacity:.92}
       @keyframes landingPetal{from{transform:scale(1)}to{transform:scale(1.035)}}
       .landing-hero-copy{position:absolute;left:8%;top:49%;transform:translateY(-50%);z-index:2;width:65%}
       .landing-eyebrow{display:flex;align-items:center;gap:22px;font:10px 'DM Sans',sans-serif;letter-spacing:3.5px;color:#ddd}
@@ -100,8 +100,8 @@ def landing():
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Barlow+Condensed:wght@300;400&display=swap" rel="stylesheet">
     <style>
       *{{box-sizing:border-box}}html,body{{margin:0;width:100%;height:100%;overflow:hidden;background:#050505}}
-      .landing-hero{{height:690px;position:relative;overflow:hidden;background:#050505;color:#eee}}
-      .flower{{position:absolute;inset:0;background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 58%,rgba(5,5,5,.08) 100%),url('{FLOWER}');background-size:cover;background-position:center 48%;opacity:.92;animation:landingPetal 16s ease-in-out infinite alternate}}
+      .landing-hero{{height:820px;position:relative;overflow:hidden;background:#050505;color:#eee}}
+      .flower{{position:absolute;inset:0;background-image:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.96) 18%,rgba(5,5,5,.30) 58%,rgba(5,5,5,.08) 100%),url('{FLOWER}');background-size:100% 100%, auto 100%;background-position:center, right center;background-repeat:no-repeat;opacity:.92}}
       @keyframes landingPetal{{from{{transform:scale(1)}}to{{transform:scale(1.035)}}}}
       .landing-hero-copy{{position:absolute;left:8%;top:49%;transform:translateY(-50%);z-index:2;width:65%}}
       .landing-eyebrow{{display:flex;align-items:center;gap:22px;font:10px 'DM Sans',sans-serif;letter-spacing:3.5px;color:#ddd}}
@@ -121,7 +121,7 @@ def landing():
       <div class="landing-title">AFTERIMAGE.</div><div class="landing-tag">YOUR ART. YOUR WORLD.</div>
       <div class="landing-desc">AN EXHIBITION THAT STAYS WITH YOU.<br>CREATE, EXHIBIT, AND SHARE<br>YOUR OWN ARTISTIC SPACE.</div></section>
     </main></body></html>"""
-    components.html(hero, height=690, scrolling=False)
+    components.html(hero, height=820, scrolling=False)
 
     st.markdown('<div class="landing-cta-label">ENTER AFTERIMAGE.　/　CHOOSE YOUR SPACE</div>', unsafe_allow_html=True)
     c1, c2, _ = st.columns([1, 1, 1.15], gap="medium")
